@@ -287,15 +287,15 @@ const ITEMS=[
 const PHRASES={
  welcome:'أَهْلاً بِكِ في مَتْجَرِ النُّقود. اخْتاري لُعْبَة.',
  l1:'جِدارُ النُّقود.', l2:'ادْفَعي السِّعْر.', l3:'هَلْ يَكْفي المَبْلَغ؟', l4:'كَمِ الباقي؟', l5:'رِحْلَةُ التَّسَوُّق.',
- watch:'شاهِدي نورَة أَوَّلاً.', try:'الآنَ دَوْرُكِ. جَرِّبي.',
- d_intro:'هذِهِ نورَة. ذَهَبَتْ إلى المَتْجَرِ لِتَشْتَرِيَ شَيْئاً.',
- d_pick:'تَخْتارُ نورَة', d_look:'تَنْظُرُ نورَة إلى السِّعْر.', d_wallet:'تَفْتَحُ مَحْفَظَتَها وَتَخْتارُ النُّقود.',
- d_same:'المَبْلَغُ مِثْلُ السِّعْرِ تَماماً. تَدْفَعُ نورَة.', thanks:'شُكْراً لَكِ!',
- d_enough_1:'تَعُدُّ نورَة نُقودَها.', d_enough_2:'ثُمَّ تَنْظُرُ إلى السِّعْر.',
+ watch:'شاهِدي فاطِمَة أَوَّلاً.', try:'الآنَ دَوْرُكِ. جَرِّبي.',
+ d_intro:'هذِهِ فاطِمَة. ذَهَبَتْ إلى المَتْجَرِ لِتَشْتَرِيَ شَيْئاً.',
+ d_pick:'تَخْتارُ فاطِمَة', d_look:'تَنْظُرُ فاطِمَة إلى السِّعْر.', d_wallet:'تَفْتَحُ مَحْفَظَتَها وَتَخْتارُ النُّقود.',
+ d_same:'المَبْلَغُ مِثْلُ السِّعْرِ تَماماً. تَدْفَعُ فاطِمَة.', thanks:'شُكْراً لَكِ!',
+ d_enough_1:'تَعُدُّ فاطِمَة نُقودَها.', d_enough_2:'ثُمَّ تَنْظُرُ إلى السِّعْر.',
  d_enough_yes:'المَبْلَغُ مِثْلُ السِّعْرِ أَوْ أَكْثَر. إِذَنْ يَكْفي.', d_enough_no:'المَبْلَغُ أَقَلُّ مِنَ السِّعْر. إِذَنْ لا يَكْفي.',
- d_change_1:'لَيْسَ مَعَ نورَة المَبْلَغُ بِالضَّبْط. تُعْطي البائِعَةَ وَرَقَةً أَكْبَر.',
- d_change_2:'تَعُدُّ البائِعَةُ مِنَ السِّعْرِ حَتّى المَبْلَغِ المَدْفوع، وَتُعْطي نورَة الباقي.',
- d_trip_1:'مَعَ نورَة قائِمَةُ تَسَوُّق.', d_trip_2:'تَأْخُذُ مِنَ الرَّفِّ ما في القائِمَةِ فَقَط.', d_trip_3:'ثُمَّ تَدْفَعُ عِنْدَ البائِعَة.',
+ d_change_1:'لَيْسَ مَعَ فاطِمَة المَبْلَغُ بِالضَّبْط. تُعْطي البائِعَةَ وَرَقَةً أَكْبَر.',
+ d_change_2:'تَعُدُّ البائِعَةُ مِنَ السِّعْرِ حَتّى المَبْلَغِ المَدْفوع، وَتُعْطي فاطِمَة الباقي.',
+ d_trip_1:'مَعَ فاطِمَة قائِمَةُ تَسَوُّق.', d_trip_2:'تَأْخُذُ مِنَ الرَّفِّ ما في القائِمَةِ فَقَط.', d_trip_3:'ثُمَّ تَدْفَعُ عِنْدَ البائِعَة.',
  i1:'اسْتَمِعي، ثُمَّ اضْغَطي على النُّقودِ الصَّحيحَة.',
  wall_intro:'اضْغَطي على أَيِّ نُقودٍ لِتَسْمَعي اسْمَها.',
  tap_or_drag:'اسْحَبي النُّقودَ إلى الطّاوِلَة، أَوِ اضْغَطي عَلَيْها.',
@@ -468,7 +468,7 @@ const LEVELS=[
 
 function showStart(){
   runId++; $stage.className='stage'; $stage.innerHTML='';
-  const hero=h('<div class="hero"></div>'); const sc=buildScene(); sc.setShelf(pickItems(4)); sc.girlArm(true); sc.happy(true); sc.speak('أهلاً! أنا نورة'); hero.append(sc.root);
+  const hero=h('<div class="hero"></div>'); const sc=buildScene(); sc.setShelf(pickItems(4)); sc.girlArm(true); sc.happy(true); sc.speak('أهلاً! أنا فاطمة'); hero.append(sc.root);
   [['🪙',4,10],['💰',86,8],['🪙',90,46],['⭐',14,60],['🛍️',46,4],['✨',70,70]].forEach(([e,x,y],i)=>{ const f=h(`<span class="float" aria-hidden="true">${e}</span>`); f.style.left=x+'%'; f.style.top=y+'%'; f.style.animationDelay=(i*.55)+'s'; hero.append(f); });
   $stage.append(h('<div class="prompt">أهلاً بكِ في متجر النقود</div>'),hero);
   const g=h('<div class="profiles"></div>');
@@ -518,7 +518,7 @@ async function showDemo(L){
   const btnAgain=h('<button class="big ghost"><svg><use href="#ic-play"/></svg>شاهدي مرة أخرى</button>'); btnAgain.onclick=()=>showDemo(L);
   actions.append(btnTry,btnAgain); btnTry.hidden=true; btnAgain.hidden=true;
   const narrate=async(keys,text)=>{ if(!alive(id)) return; cap.textContent=text||''; await say(keys); };
-  await narrate([L.key,'watch'],'شاهدي نورة أولاً');
+  await narrate([L.key,'watch'],'شاهدي فاطمة أولاً');
   if(!alive(id)) return;
   await L.demo(body,narrate,id);
   if(!alive(id)) return;
@@ -592,9 +592,9 @@ async function demoPay(body,narrate,id){
   const items=pickItems(4), item=items[0], price=7, sc=buildScene(); body.append(sc.root);
   sc.setShelf(items);
   const w=wallet([1,2,5,10]); body.append(w);
-  await narrate(['d_intro'],'هذه نورة، ذهبت إلى المتجر'); if(!alive(id)) return;
+  await narrate(['d_intro'],'هذه فاطمة، ذهبت إلى المتجر'); if(!alive(id)) return;
   sc.speak(item.plain);
-  await narrate(['d_pick','item_'+item.k],'تختار نورة: '+item.plain); if(!alive(id)) return;
+  await narrate(['d_pick','item_'+item.k],'تختار فاطمة: '+item.plain); if(!alive(id)) return;
   await sc.putOnCounter(item,sc.shelfBtns[item.k]); sc.speak('');
   sc.setTag(price,'السعر'); sc.pulseTag();
   await narrate(['d_look','w_price',amt(price)],'السعر '+price+' ريالات'); if(!alive(id)) return;
@@ -634,8 +634,8 @@ async function demoEnough(body,narrate,id){
   const item=rand(ITEMS), price=12, have=15, sc=buildScene(); body.append(sc.root);
   sc.setShelf(pickItems(4)); sc.putOnCounter(item); sc.setTag(price,'السعر');
   const w=wallet(breakDown(have,[10,5,2,1]),{label:'معكِ'}); body.append(w);
-  await narrate(['d_intro'],'هذه نورة في المتجر'); if(!alive(id)) return;
-  w.classList.add('hl'); await narrate(['d_enough_1','w_withyou',amt(have)],'تعدّ نورة نقودها: '+have); if(!alive(id)) return;
+  await narrate(['d_intro'],'هذه فاطمة في المتجر'); if(!alive(id)) return;
+  w.classList.add('hl'); await narrate(['d_enough_1','w_withyou',amt(have)],'تعدّ فاطمة نقودها: '+have); if(!alive(id)) return;
   w.classList.remove('hl'); sc.pulseTag(); await narrate(['d_enough_2','w_price',amt(price)],'السعر: '+price); if(!alive(id)) return;
   const m=meterEl(have,price); body.append(m);
   await narrate(['d_enough_yes'],'١٥ أكثر من ١٢، إذن يكفي'); if(!alive(id)) return;
@@ -709,8 +709,8 @@ async function demoTrip(body,narrate,id){
   const shelfItems=pickItems(4), list=shelfItems.slice(0,2), sc=buildScene(); body.append(sc.root);
   sc.setShelf(shelfItems); const lo=listOv(list); sc.root.append(lo);
   const total=list.reduce((a,it)=>a+PRICE_OF[it.k],0); const w=wallet(breakDown(total,[10,5,2,1]),{label:'المحفظة'}); body.append(w);
-  await narrate(['d_intro'],'هذه نورة في المتجر'); if(!alive(id)) return;
-  await narrate(['d_trip_1'],'مع نورة قائمة تسوق'); if(!alive(id)) return;
+  await narrate(['d_intro'],'هذه فاطمة في المتجر'); if(!alive(id)) return;
+  await narrate(['d_trip_1'],'مع فاطمة قائمة تسوق'); if(!alive(id)) return;
   await narrate(['d_trip_2'],'تأخذ من الرف ما في القائمة فقط'); if(!alive(id)) return;
   let sum=0; for(const it of list){ if(!alive(id)) return; sc.speak(it.plain); await sc.putOnCounter(it,sc.shelfBtns[it.k]); lo.querySelector(`.li[data-k="${it.k}"]`).classList.add('done'); sum+=PRICE_OF[it.k]; sc.setTag(sum,'المجموع'); await narrate(['item_'+it.k,amt(PRICE_OF[it.k])],it.plain+' '+PRICE_OF[it.k]); }
   sc.speak(''); sc.pulseTag(); await narrate(['list_done','w_total',amt(total)],'اكتملت القائمة. المجموع '+total); if(!alive(id)) return;
@@ -771,7 +771,7 @@ function showTeacher(){
     c.querySelector('button').onclick=()=>{ profiles=profiles.filter(x=>x.id!==p.id); store('ms_profiles',profiles); if(profile&&profile.id===p.id){profile=null;} c.remove(); }; ul.append(c); });
   $stage.append(ul);
   $stage.append(h('<h3>الاستخدام في الصف</h3>'));
-  $stage.append(h('<p>كل لعبة تبدأ بمشاهدة نورة وهي تؤدي المهمة، ثم تؤديها الطالبة بنفسها. يُفضّل وضع نقود حقيقية أمام الطالبة أثناء اللعب لتطابق ما على الشاشة بما في يدها. زر السماعة في الأعلى يعيد آخر جملة.</p>'));
+  $stage.append(h('<p>كل لعبة تبدأ بمشاهدة فاطمة وهي تؤدي المهمة، ثم تؤديها الطالبة بنفسها. يُفضّل وضع نقود حقيقية أمام الطالبة أثناء اللعب لتطابق ما على الشاشة بما في يدها. زر السماعة في الأعلى يعيد آخر جملة.</p>'));
   $stage.append(h('<h3>نص التسجيل الصوتي</h3>'));
   const voiceName=arVoice?arVoice.name+' ('+arVoice.lang+')':'لا يوجد صوت عربي في هذا الجهاز';
   $stage.append(h('<p>الجمل المسجّلة تُشغَّل من مجلد <code dir="ltr">audio</code>. أي جملة غير مسجّلة يقرؤها صوت الجهاز: <b>'+voiceName+'</b>. العدد الكلي: <b>'+Object.keys(PHRASES).length+'</b> جملة.</p>'));
