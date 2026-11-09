@@ -205,6 +205,32 @@ td button{background:var(--tray);border:1px solid var(--line);border-radius:10px
 .pill.off{background:var(--tray);color:var(--muted)}
 .foot{text-align:center}.foot a{color:var(--muted);font-size:15px}
 
+/* start page / profiles */
+.hero{position:relative;width:100%;max-width:820px}
+.hero .scene{aspect-ratio:16/8}
+.float{position:absolute;font-size:clamp(22px,4vw,38px);line-height:1;animation:floaty 4s ease-in-out infinite;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.15))}
+@keyframes floaty{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-14px) rotate(8deg)}}
+.who{font-size:24px;font-weight:700}
+.profiles{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;width:100%}
+.pcard{width:150px;min-height:150px;border-radius:22px;background:var(--tray);border:3px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px;text-align:center}
+.pcard:hover{border-color:var(--accent)}
+.pcard .av{font-size:56px;line-height:1}
+.pcard b{font-size:20px;overflow-wrap:anywhere}
+.pcard.add{border-style:dashed}
+.pcard .av.plus{font-size:48px;color:var(--accent);font-weight:700}
+.namebox{display:flex;flex-direction:column;gap:14px;align-items:center;width:100%;max-width:520px}
+.namebox input{font:inherit;font-size:28px;font-weight:700;text-align:center;padding:14px 18px;border-radius:18px;border:3px solid var(--line);background:var(--card);color:var(--ink);width:100%}
+.namebox input:focus{outline:none;border-color:var(--accent)}
+.avgrid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.avgrid button{font-size:40px;line-height:1;width:68px;height:68px;border-radius:18px;background:var(--tray);border:3px solid transparent}
+.avgrid button.on{border-color:var(--accent);background:var(--good-bg)}
+.greet{display:flex;align-items:center;gap:12px;justify-content:center;flex-wrap:wrap}
+.greet .av{font-size:48px;line-height:1}
+.greet .prompt{margin:0}
+.linkbtn{color:var(--muted);font-size:15px;text-decoration:underline}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:40}
+.confetti span{position:absolute;top:-40px;line-height:1;animation:fall 2.8s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(380deg)}}
 @keyframes pop{0%{transform:scale(.7)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
 .pop{animation:pop .4s ease-out}
@@ -425,6 +451,11 @@ function enableDrag(el,{onTap,onDrop,zone}){
    ========================================================= */
 const $stage=document.getElementById('stage');
 let state={level:null,round:0,score:0,bought:[]}, runId=0;
+const AVATARS=['🌸','🦋','🐱','⭐','🌈','🍓','🐰','🌙','🦄','🎀','🐥','🍉'];
+let profiles=store('ms_profiles')||[];
+let profile=profiles.find(p=>p.id===store('ms_current'))||null;
+const starsKey=L=>'stars_'+(profile?profile.id:'x')+'_'+L.id;
+function confetti(){ const c=h('<div class="confetti" aria-hidden="true"></div>'); const E=['🎉','⭐','🌟','🎈','💛','✨','🌸']; for(let i=0;i<30;i++){ const sp=h(`<span>${rand(E)}</span>`); sp.style.left=Math.random()*100+'%'; sp.style.animationDelay=(Math.random()*1.3)+'s'; sp.style.fontSize=(20+Math.random()*22)+'px'; c.append(sp);} document.body.append(c); setTimeout(()=>c.remove(),4500); }
 const alive=id=>id===runId;
 
 const LEVELS=[
@@ -437,15 +468,39 @@ const LEVELS=[
 
 function showStart(){
   runId++; $stage.className='stage'; $stage.innerHTML='';
-  $stage.append(h('<div class="prompt">أهلاً بكِ في متجر النقود</div>'), h('<div class="sub">اضغطي على الزر لتسمعي الصوت وتبدئي</div>'));
-  const b=h('<button class="start" id="go">ابدئي</button>'); b.onclick=()=>{say(['welcome']);showMenu();}; $stage.append(b);
+  const hero=h('<div class="hero"></div>'); const sc=buildScene(); sc.setShelf(pickItems(4)); sc.girlArm(true); sc.happy(true); sc.speak('أهلاً! أنا نورة'); hero.append(sc.root);
+  [['🪙',4,10],['💰',86,8],['🪙',90,46],['⭐',14,60],['🛍️',46,4],['✨',70,70]].forEach(([e,x,y],i)=>{ const f=h(`<span class="float" aria-hidden="true">${e}</span>`); f.style.left=x+'%'; f.style.top=y+'%'; f.style.animationDelay=(i*.55)+'s'; hero.append(f); });
+  $stage.append(h('<div class="prompt">أهلاً بكِ في متجر النقود</div>'),hero);
+  const g=h('<div class="profiles"></div>');
+  if(profiles.length){
+    $stage.append(h('<div class="who">من أنتِ؟ اضغطي على اسمك</div>'));
+    profiles.forEach(p=>{ const c=h(`<button class="pcard" id="p_${p.id}"><span class="av">${p.emoji}</span><b></b></button>`); c.querySelector('b').textContent=p.name; c.onclick=()=>{profile=p;store('ms_current',p.id);say(['welcome']);showMenu();}; g.append(c); });
+    const add=h('<button class="pcard add" id="addname"><span class="av plus">+</span><b>اسم جديد</b></button>'); add.onclick=showAddProfile; g.append(add); $stage.append(g);
+  } else {
+    $stage.append(h('<div class="sub">اضغطي على الزر لتكتبي اسمك وتبدئي</div>'));
+    const b=h('<button class="start" id="go">ابدئي</button>'); b.onclick=showAddProfile; $stage.append(b);
+  }
+}
+function showAddProfile(){
+  runId++; $stage.className='stage'; $stage.innerHTML='';
+  $stage.append(h('<div class="prompt">ما اسمك؟</div>'));
+  const box=h('<div class="namebox"><input id="pname" maxlength="20" placeholder="اكتبي اسمك هنا" autocomplete="off" aria-label="الاسم"><div class="sub">اختاري صورتك</div><div class="avgrid"></div></div>');
+  let emoji=AVATARS[0]; const grid=box.querySelector('.avgrid');
+  AVATARS.forEach((e,i)=>{ const b=h(`<button class="${i===0?'on':''}" aria-label="صورة">${e}</button>`); b.onclick=()=>{emoji=e;grid.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');}; grid.append(b); });
+  const a=h('<div class="actions"></div>'); const ok=h('<button class="big primary" id="savename">ابدئي</button>'); const back=h('<button class="big ghost">رجوع</button>');
+  ok.onclick=()=>{ const name=box.querySelector('input').value.trim()||'صديقتي'; const p={id:Date.now().toString(36),name,emoji}; profiles.push(p); store('ms_profiles',profiles); profile=p; store('ms_current',p.id); say(['welcome']); showMenu(); };
+  back.onclick=showStart; a.append(ok,back); $stage.append(box,a);
+  setTimeout(()=>box.querySelector('input').focus(),60);
 }
 function showMenu(){
+  if(!profile) return showStart();
   runId++; state={level:null,round:0,score:0,bought:[]}; $stage.className='stage'; $stage.innerHTML='';
-  $stage.append(h('<div class="prompt">اختاري لعبة</div>'));
+  const gr=h(`<div class="greet"><span class="av">${profile.emoji}</span><div class="prompt">أهلاً يا <span></span>، اختاري لعبة</div></div>`); gr.querySelector('.prompt span').textContent=profile.name;
+  const sw=h('<button class="linkbtn">تبديل الاسم</button>'); sw.onclick=showStart;
+  $stage.append(gr,sw);
   const m=h('<div class="menu"></div>');
   LEVELS.forEach(L=>{
-    const best=store('stars'+L.id)||0, total=L.rounds||S.rounds;
+    const best=store(starsKey(L))||0, total=L.rounds||S.rounds;
     const b=h(`<button class="lvl" id="lvl${L.id}"><span></span><span><b>${L.title}</b><span class="d">${L.desc}</span><div class="stars" aria-label="النجوم">${'★'.repeat(Math.min(best,total))}<em>${'★'.repeat(Math.max(0,total-best))}</em></div></span></button>`);
     b.firstElementChild.replaceWith(L.art());
     b.onclick=()=>startLevel(L); m.append(b);
@@ -472,10 +527,12 @@ async function showDemo(L){
 }
 function nextRound(firstTry){ if(firstTry) state.score++; state.round++; const n=state.level.rounds||S.rounds; if(state.round>=n) return showEnd(); const id=++runId; setTimeout(()=>{ if(alive(id)) state.level.round(false); },1700); }
 function showEnd(){
-  const L=state.level, n=L.rounds||S.rounds, s=Math.max(1,state.score); const best=store('stars'+L.id)||0; if(s>best) store('stars'+L.id,s);
+  const L=state.level, n=L.rounds||S.rounds, s=Math.max(1,state.score); const best=store(starsKey(L))||0; if(s>best) store(starsKey(L),s);
   const id=++runId;
   setTimeout(()=>{ if(!alive(id)) return; $stage.innerHTML='';
-    $stage.append(h('<div class="celebrate pop">'+'★'.repeat(s)+'</div>'), h('<div class="prompt">انتهت اللعبة. أحسنتِ!</div>'));
+    confetti();
+    const pr=h('<div class="prompt">أحسنتِ يا <span></span>! انتهت اللعبة</div>'); pr.querySelector('span').textContent=profile?profile.name:'';
+    $stage.append(h('<div class="celebrate pop">'+'★'.repeat(s)+'</div>'), pr);
     if(state.bought.length){ const sh=h('<div class="rewardshelf" aria-label="ما اشتريتِه"></div>'); state.bought.forEach((k,i)=>{const g=h(icon(k)); g.style.animationDelay=(i*.15)+'s'; sh.append(g);}); $stage.append(h('<div class="sub">ماذا اشتريتِ اليوم؟</div>'),sh); }
     const a=h('<div class="actions"></div>'); const again=h('<button class="big primary">العبي مرة أخرى</button>'); again.onclick=()=>{state={level:L,round:0,score:0,bought:[]};runId++;L.round(true)};
     const menu=h('<button class="big ghost">اختاري لعبة أخرى</button>'); menu.onclick=showMenu; a.append(again,menu); $stage.append(a);
@@ -705,7 +762,14 @@ function showTeacher(){
   grid.append(seg('rounds','عدد الجولات',[[3,'٣'],[5,'٥'],[8,'٨']]));
   $stage.append(grid);
   const reset=h('<button class="big ghost" style="align-self:flex-start;font-size:18px;min-height:56px">مسح نجوم الطالبة على هذا الجهاز</button>');
-  reset.onclick=()=>{[1,2,3,4,5].forEach(i=>{try{localStorage.removeItem('stars'+i)}catch(e){}});reset.textContent='تم المسح';}; $stage.append(reset);
+  reset.onclick=()=>{try{Object.keys(localStorage).filter(k=>k.startsWith('stars')).forEach(k=>localStorage.removeItem(k))}catch(e){};reset.textContent='تم المسح';}; $stage.append(reset);
+  $stage.append(h('<h3>الطالبات على هذا الجهاز</h3>'));
+  $stage.append(h('<p>كل طالبة تكتب اسمها مرة واحدة وتختار صورتها، ثم تضغط على بطاقتها في الصفحة الأولى. النجوم تُحفظ لكل اسم على حدة.</p>'));
+  const ul=h('<div class="profiles" style="justify-content:flex-start"></div>');
+  if(!profiles.length) ul.append(h('<div class="sub">لا توجد أسماء بعد.</div>'));
+  profiles.forEach(p=>{ const c=h(`<div class="pcard"><span class="av">${p.emoji}</span><b></b><button class="big ghost" style="min-height:40px;min-width:0;font-size:15px;padding:0 12px">حذف</button></div>`); c.querySelector('b').textContent=p.name;
+    c.querySelector('button').onclick=()=>{ profiles=profiles.filter(x=>x.id!==p.id); store('ms_profiles',profiles); if(profile&&profile.id===p.id){profile=null;} c.remove(); }; ul.append(c); });
+  $stage.append(ul);
   $stage.append(h('<h3>الاستخدام في الصف</h3>'));
   $stage.append(h('<p>كل لعبة تبدأ بمشاهدة نورة وهي تؤدي المهمة، ثم تؤديها الطالبة بنفسها. يُفضّل وضع نقود حقيقية أمام الطالبة أثناء اللعب لتطابق ما على الشاشة بما في يدها. زر السماعة في الأعلى يعيد آخر جملة.</p>'));
   $stage.append(h('<h3>نص التسجيل الصوتي</h3>'));
@@ -719,7 +783,7 @@ function showTeacher(){
 
 /* ---------- wiring ---------- */
 document.getElementById('replay').onclick=()=>say(lastSay.length?lastSay:['welcome'],false);
-document.getElementById('home').onclick=()=>{ if(location.hash==='#teacher') location.hash=''; showMenu(); };
+document.getElementById('home').onclick=()=>{ if(location.hash==='#teacher') location.hash=''; profile?showMenu():showStart(); };
 function route(){ if(location.hash==='#teacher') showTeacher(); else showStart(); }
 window.addEventListener('hashchange',route);
 route();
