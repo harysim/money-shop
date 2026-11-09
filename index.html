@@ -1,0 +1,552 @@
+<title>متجر النقود</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;600;700&display=swap">
+<style>
+/* Layout: one-screen app — slim top bar, one big task card centered, large touch targets, nothing else on screen */
+:root{
+  --bg:#EAF1ED;          /* pale sage ground */
+  --card:#FFFFFF;
+  --ink:#16302A;         /* deep green-black text */
+  --muted:#5B6F68;
+  --line:#CFDDD6;
+  --accent:#0E6B50;      /* Saudi green, buttons and focus */
+  --accent-ink:#FFFFFF;
+  --sun:#F2B33D;         /* saffron: praise, highlights */
+  --good:#1E8A5A; --good-bg:#DDF2E6;
+  --soft-bad:#B5651D; --soft-bad-bg:#FCEBD8;  /* gentle orange, never red */
+  --tray:#F4F8F6;
+  --font:"Readex Pro","Noto Sans Arabic","Segoe UI",Tahoma,sans-serif;
+  --r:20px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1A17;--card:#182622;--ink:#E8F1EC;--muted:#9DB2AA;--line:#2B3D37;
+  --accent:#35B488;--accent-ink:#06261B;--sun:#F2B33D;--good:#5FD39C;--good-bg:#173A2B;
+  --soft-bad:#F0A766;--soft-bad-bg:#3A2A1A;--tray:#13201C;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1A17;--card:#182622;--ink:#E8F1EC;--muted:#9DB2AA;--line:#2B3D37;
+  --accent:#35B488;--accent-ink:#06261B;--sun:#F2B33D;--good:#5FD39C;--good-bg:#173A2B;
+  --soft-bad:#F0A766;--soft-bad-bg:#3A2A1A;--tray:#13201C;color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:18px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));}
+#app{max-width:880px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;gap:16px;padding-block:12px 24px}
+button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:4px solid var(--sun);outline-offset:3px}
+
+/* top bar */
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{font-weight:700;font-size:22px;display:flex;align-items:center;gap:10px}
+.brand .dot{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 50% 50%,#E9C46A 0 45%,#C9CDD2 46% 100%);box-shadow:inset 0 0 0 2px rgba(0,0,0,.15)}
+.iconbtn{min-width:64px;height:64px;border-radius:18px;background:var(--card);border:2px solid var(--line);font-size:28px;display:grid;place-items:center;padding:0 14px;font-size:18px;font-weight:600;gap:4px}
+.iconbtn svg{width:30px;height:30px}
+.iconbtn.speak{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.bar .group{display:flex;gap:10px}
+
+/* stage */
+.stage{flex:1;background:var(--card);border-radius:28px;border:2px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;align-items:center;justify-content:center;text-align:center}
+.prompt{font-size:clamp(24px,5vw,34px);font-weight:700;text-wrap:balance;line-height:1.4}
+.sub{color:var(--muted);font-size:18px}
+.dots{display:flex;gap:8px;justify-content:center}
+.dots i{width:16px;height:16px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--sun)}
+
+/* menu */
+.menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;width:100%}
+@media (max-width:560px){.menu{grid-template-columns:1fr}}
+.game{background:var(--tray);border:2px solid var(--line);border-radius:var(--r);padding:20px;display:flex;align-items:center;gap:16px;text-align:start;min-height:120px}
+.game:hover{border-color:var(--accent)}
+.game .num{flex:none;width:56px;height:56px;border-radius:16px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-size:26px}
+.game b{display:block;font-size:22px}
+.game span{color:var(--muted);font-size:16px}
+.game .stars{color:var(--sun);font-size:18px;letter-spacing:2px;margin-top:4px}
+.start{background:var(--accent);color:var(--accent-ink);font-size:26px;font-weight:700;padding:22px 48px;border-radius:24px}
+
+/* money */
+.money{display:inline-flex;align-items:center;justify-content:center;position:relative;flex:none;user-select:none;transition:transform .15s}
+.note{width:150px;height:76px;border-radius:10px;color:#fff;box-shadow:0 2px 0 rgba(0,0,0,.18);overflow:hidden;flex-direction:column;line-height:1}
+.note::before{content:"";position:absolute;inset:6px;border:2px solid rgba(255,255,255,.45);border-radius:6px}
+.note::after{content:"";position:absolute;width:56px;height:56px;border-radius:50%;inset-inline-start:-14px;top:10px;background:rgba(255,255,255,.18)}
+.note .v{font-size:34px;font-weight:700;position:relative;z-index:1}
+.note .u{font-size:14px;position:relative;z-index:1;margin-top:4px}
+.n5{background:linear-gradient(135deg,#7B4FA0,#5D3A80)}
+.n10{background:linear-gradient(135deg,#9A6B3F,#76502D)}
+.n50{background:linear-gradient(135deg,#2F8A5A,#1F6643)}
+.n100{background:linear-gradient(135deg,#B8434A,#8E2F35)}
+.coin{width:84px;height:84px;border-radius:50%;flex-direction:column;line-height:1;color:#3A2E12;box-shadow:0 2px 0 rgba(0,0,0,.2)}
+.coin .v{font-size:30px;font-weight:700}.coin .u{font-size:12px;margin-top:2px}
+.c1{background:radial-gradient(circle,#EBC765 0 52%,#C5CAD0 53% 100%)}
+.c2{background:radial-gradient(circle,#D3D7DC 0 52%,#E2B850 53% 100%)}
+.money.small.note{width:96px;height:50px}.money.small.note .v{font-size:22px}.money.small.note .u{font-size:11px}
+.money.small.coin{width:56px;height:56px}.money.small.coin .v{font-size:20px}.money.small.coin .u{display:none}
+.money.small.note::after{width:34px;height:34px;top:8px}
+
+/* option buttons wrapping money */
+.opts{display:flex;flex-wrap:wrap;gap:18px;justify-content:center}
+.opt{padding:14px;border-radius:22px;border:3px solid transparent;background:var(--tray);min-width:120px;min-height:120px;display:grid;place-items:center;transition:opacity .2s,border-color .2s}
+.opt:hover .money{transform:scale(1.04)}
+.opt.dim{opacity:.35}
+.opt.glow{border-color:var(--sun);box-shadow:0 0 0 6px color-mix(in srgb,var(--sun) 30%,transparent)}
+.opt.right{border-color:var(--good);background:var(--good-bg)}
+
+/* item + price tag */
+.item{display:flex;align-items:center;gap:18px;justify-content:center;flex-wrap:wrap}
+.item .pic{font-size:84px;line-height:1}
+.tag{background:var(--sun);color:#3A2600;border-radius:14px 14px 14px 14px;padding:10px 22px;font-weight:700;font-size:30px;display:flex;align-items:baseline;gap:8px;position:relative}
+.tag small{font-size:16px;font-weight:600}
+.tag .lbl{font-size:16px;font-weight:600;opacity:.8}
+.iname{font-size:22px;font-weight:600}
+
+/* tray */
+.tray{width:100%;min-height:110px;background:var(--tray);border:3px dashed var(--line);border-radius:var(--r);padding:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center}
+.tray .empty{color:var(--muted)}
+.tray button{padding:0}
+.total{font-size:26px;font-weight:700;display:flex;gap:10px;align-items:baseline;justify-content:center}
+.meter{width:100%;max-width:420px;height:18px;border-radius:9px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+.meter.over i{background:var(--soft-bad)}
+.meter.done i{background:var(--good)}
+.wallet{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;align-items:center}
+.wallet button{padding:6px;border-radius:16px}
+.wallet button:active .money{transform:scale(.94)}
+
+.actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.big{min-width:150px;min-height:72px;border-radius:20px;font-size:24px;font-weight:700;padding:0 28px}
+.big.primary{background:var(--accent);color:var(--accent-ink)}
+.big.yes{background:var(--good-bg);color:var(--good);border:3px solid var(--good)}
+.big.no{background:var(--soft-bad-bg);color:var(--soft-bad);border:3px solid var(--soft-bad)}
+.big.ghost{background:var(--tray);border:2px solid var(--line)}
+
+.feedback{min-height:48px;font-size:24px;font-weight:700;border-radius:16px;padding:8px 18px}
+.feedback.good{background:var(--good-bg);color:var(--good)}
+.feedback.soft{background:var(--soft-bad-bg);color:var(--soft-bad)}
+.pile{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;max-width:520px}
+.pair{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;width:100%}
+.panel{background:var(--tray);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px;align-items:center;flex:1 1 220px;min-width:0}
+.panel h3{margin:0;font-size:18px;color:var(--muted);font-weight:600}
+.count{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.count span{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:6px 12px;font-weight:700;font-size:22px;font-variant-numeric:tabular-nums}
+.count span.now{border-color:var(--sun);background:color-mix(in srgb,var(--sun) 25%,var(--card))}
+.ansnum{font-size:30px;font-weight:700;min-width:110px;min-height:84px;border-radius:20px;background:var(--tray);border:3px solid var(--line);display:grid;place-items:center;padding:0 18px;font-variant-numeric:tabular-nums}
+.ansnum small{font-size:15px;font-weight:600;display:block}
+
+.celebrate{font-size:64px;color:var(--sun);letter-spacing:6px}
+.note-warn{font-size:15px;color:var(--soft-bad);background:var(--soft-bad-bg);padding:8px 14px;border-radius:12px}
+
+/* teacher page */
+.teacher{text-align:start;align-items:stretch;justify-content:flex-start}
+.teacher h2{margin:0;font-size:24px}
+.teacher p{margin:0;color:var(--muted);line-height:1.7;max-width:65ch}
+.scriptwrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table{border-collapse:collapse;width:100%;font-size:16px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:start;vertical-align:middle}
+th{background:var(--tray);font-weight:600;position:sticky;top:0}
+td code{font-family:ui-monospace,Menlo,monospace;font-size:14px;direction:ltr;unicode-bidi:isolate}
+td button{background:var(--tray);border:1px solid var(--line);border-radius:10px;padding:4px 10px;font-size:14px}
+.pill{display:inline-block;font-size:13px;padding:2px 10px;border-radius:999px;background:var(--good-bg);color:var(--good)}
+.pill.off{background:var(--tray);color:var(--muted)}
+.foot{text-align:center}
+.foot a{color:var(--muted);font-size:15px}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@keyframes pop{0%{transform:scale(.8)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+.pop{animation:pop .35s ease-out}
+</style>
+
+<div id="app" dir="rtl" lang="ar">
+  <div class="bar">
+    <div class="brand"><span class="dot" aria-hidden="true"></span>متجر النقود</div>
+    <div class="group">
+      <button class="iconbtn speak" id="replay" aria-label="أعيدي الاستماع" title="أعيدي الاستماع">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+      </button>
+      <button class="iconbtn" id="home" aria-label="الرئيسية" title="الرئيسية">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>
+      </button>
+    </div>
+  </div>
+  <main class="stage" id="stage"></main>
+  <div class="foot"><a href="#teacher" id="teacherLink">صفحة المعلمة: نص التسجيل الصوتي</a></div>
+</div>
+
+<script>
+/* =========================================================
+   1) PHRASES — every sentence the app can say.
+   Each key is also the audio file name: audio/<key>.mp3
+   ========================================================= */
+const UNITS={1:'واحِدٌ',2:'اثْنانِ',3:'ثَلاثَةٌ',4:'أَرْبَعَةٌ',5:'خَمْسَةٌ',6:'سِتَّةٌ',7:'سَبْعَةٌ',8:'ثَمانِيَةٌ',9:'تِسْعَةٌ'};
+const TENS={20:'عِشْرونَ',30:'ثَلاثونَ',40:'أَرْبَعونَ',50:'خَمْسونَ',60:'سِتّونَ',70:'سَبْعونَ',80:'ثَمانونَ',90:'تِسْعونَ'};
+const SMALL={1:'رِيالٌ واحِد',2:'رِيالان',3:'ثَلاثَةُ رِيالات',4:'أَرْبَعَةُ رِيالات',5:'خَمْسَةُ رِيالات',6:'سِتَّةُ رِيالات',7:'سَبْعَةُ رِيالات',8:'ثَمانِيَةُ رِيالات',9:'تِسْعَةُ رِيالات',10:'عَشَرَةُ رِيالات',
+ 11:'أَحَدَ عَشَرَ رِيالاً',12:'اثْنا عَشَرَ رِيالاً',13:'ثَلاثَةَ عَشَرَ رِيالاً',14:'أَرْبَعَةَ عَشَرَ رِيالاً',15:'خَمْسَةَ عَشَرَ رِيالاً',16:'سِتَّةَ عَشَرَ رِيالاً',17:'سَبْعَةَ عَشَرَ رِيالاً',18:'ثَمانِيَةَ عَشَرَ رِيالاً',19:'تِسْعَةَ عَشَرَ رِيالاً',100:'مِئَةُ رِيال'};
+function amountText(n){
+  if(SMALL[n]) return SMALL[n];
+  if(n%10===0) return TENS[n]+' رِيالاً';
+  return UNITS[n%10]+' وَ'+TENS[n-n%10]+' رِيالاً';
+}
+// Amounts the app is allowed to use (keeps the recording list finite)
+const AMOUNTS=[...Array(30)].map((_,i)=>i+1).concat([35,40,45,50,60,70,80,90,100]);
+
+const ITEMS=[
+ {k:'juice',pic:'🧃',name:'عَصير'},{k:'water',pic:'💧',name:'ماء'},{k:'shawarma',pic:'🌯',name:'شاوَرْما'},
+ {k:'notebook',pic:'📒',name:'دَفْتَر'},{k:'pen',pic:'🖊️',name:'قَلَم'},{k:'charger',pic:'🔌',name:'شاحِنُ جَوّال'},
+ {k:'ball',pic:'⚽',name:'كُرَة'},{k:'book',pic:'📘',name:'كِتاب'},{k:'headphones',pic:'🎧',name:'سَمّاعات'},{k:'biscuit',pic:'🍪',name:'بَسْكويت'}
+];
+
+const PHRASES={
+ welcome:'أَهْلاً بِكِ في مَتْجَرِ النُّقود. اخْتاري لُعْبَة.',
+ g1:'لُعْبَةُ: تَعَرَّفي على النُّقود.',
+ g2:'لُعْبَةُ: كَوِّني المَبْلَغ.',
+ g3:'لُعْبَةُ: هَلْ يَكْفي المَبْلَغ؟',
+ g4:'لُعْبَةُ: كَمِ الباقي؟',
+ i1:'اسْتَمِعي، ثُمَّ اضْغَطي على النُّقودِ الصَّحيحَة.',
+ i2:'اضْغَطي على النُّقودِ لِتَضَعيها في السَّلَّة، حَتّى يَصيرَ المَبْلَغُ مِثْلَ السِّعْر.',
+ i3:'انْظُري إلى نُقودِك، وإلى السِّعْر.',
+ i4:'اشْتَرَيْتِ شَيْئاً، وأَعْطَيْتِ البائِعَ نُقوداً أَكْثَر.',
+ w_where:'أَيْن',
+ w_withyou:'مَعَكِ',
+ w_price:'السِّعْرُ',
+ w_paid:'المَبْلَغُ المَدْفوعُ',
+ w_change:'الباقي',
+ w_intray:'في السَّلَّة',
+ q_enough:'هَلْ يَكْفي المَبْلَغ؟',
+ q_change:'كَمْ يُرْجِعُ لَكِ البائِع؟',
+ yes:'نَعَم',no:'لا',
+ good1:'أَحْسَنْتِ!',good2:'مُمْتاز!',good3:'رائِع! أَحْسَنْتِ.',
+ retry:'حاوِلي مَرَّةً أُخْرى.',
+ less:'المَبْلَغُ أَقَلُّ مِنَ السِّعْر. أَضيفي نُقوداً.',
+ more:'المَبْلَغُ أَكْثَرُ مِنَ السِّعْر. اضْغَطي على نُقودٍ في السَّلَّةِ لِإِرْجاعِها.',
+ enough_yes:'نَعَم، المَبْلَغُ يَكْفي.',
+ enough_no:'لا، المَبْلَغُ لا يَكْفي.',
+ count_intro:'نَعُدُّ مَعاً مِنَ السِّعْرِ حَتّى المَبْلَغِ المَدْفوع.',
+ finish:'انْتَهَتِ اللُّعْبَة. أَحْسَنْتِ!'
+};
+ITEMS.forEach(it=>PHRASES['item_'+it.k]=it.name);
+AMOUNTS.forEach(n=>PHRASES['amt_'+n]=amountText(n));
+
+/* =========================================================
+   2) VOICE — plays a recorded file when one exists,
+   otherwise uses the device's Arabic voice.
+   ========================================================= */
+let recorded=new Set();          // keys listed in audio/manifest.json
+let arVoice=null, voiceToken=0, lastSay=[];
+function pickVoice(){
+  if(!('speechSynthesis' in window)) return;
+  const vs=speechSynthesis.getVoices().filter(v=>/^ar/i.test(v.lang));
+  arVoice=vs.find(v=>/SA/i.test(v.lang))||vs[0]||null;
+}
+if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}
+fetch('audio/manifest.json').then(r=>r.ok?r.json():[]).then(a=>{recorded=new Set(a)}).catch(()=>{});
+
+function playFile(key,tok){
+  return new Promise(res=>{
+    const a=new Audio('audio/'+key+'.mp3');
+    a.onended=res; a.onerror=()=>{recorded.delete(key);ttsSpeak(PHRASES[key],tok).then(res)};
+    a.play().catch(()=>res());
+  });
+}
+function ttsSpeak(text,tok){
+  return new Promise(res=>{
+    if(tok!==voiceToken||!('speechSynthesis' in window)) return res();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang=arVoice?arVoice.lang:'ar-SA'; if(arVoice) u.voice=arVoice;
+    u.rate=0.85;
+    let done=false;const fin=()=>{if(!done){done=true;res()}};
+    u.onend=fin;u.onerror=fin;
+    setTimeout(fin, 1500+text.length*160);   // safety: some browsers never fire onend
+    speechSynthesis.speak(u);
+  });
+}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+async function say(keys,remember=true){
+  keys=keys.filter(Boolean);
+  if(remember) lastSay=keys;
+  const tok=++voiceToken;
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  // Group consecutive non-recorded keys into one smooth TTS sentence
+  let buf=[];
+  const flush=async()=>{ if(buf.length){const t=buf.map(k=>PHRASES[k]).join('، ');buf=[];await ttsSpeak(t,tok);} };
+  for(const k of keys){
+    if(tok!==voiceToken) return;
+    if(recorded.has(k)){ await flush(); if(tok!==voiceToken) return; await playFile(k,tok); await wait(120); }
+    else buf.push(k);
+  }
+  await flush();
+}
+const amt=n=>'amt_'+n;
+
+/* =========================================================
+   3) DRAWING MONEY
+   ========================================================= */
+function money(v,small){
+  const el=document.createElement('span');
+  const coin=v<=2;
+  el.className='money '+(coin?'coin c':'note n')+v+(small?' small':'');
+  el.innerHTML='<span class="v">'+v+'</span><span class="u">'+'ريال'+'</span>';
+  el.setAttribute('aria-label',amountText(v).replace(/[ً-ْ]/g,''));
+  return el;
+}
+function breakDown(n){const out=[];for(const d of [100,50,10,5,2,1]){while(n>=d){out.push(d);n-=d}}return out;}
+
+/* =========================================================
+   4) SCREENS & GAMES
+   ========================================================= */
+const $stage=document.getElementById('stage');
+const ROUNDS=5;
+const rand=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
+const praise=()=>rand(['good1','good2','good3']);
+function h(html){const d=document.createElement('div');d.innerHTML=html.trim();return d.firstElementChild;}
+function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||'null');localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}}
+
+const GAMES=[
+ {id:1,title:'تعرّفي على النقود',desc:'اسمعي واضغطي على النقود',key:'g1',run:game1},
+ {id:2,title:'كوّني المبلغ',desc:'ادفعي السعر بالضبط',key:'g2',run:game2},
+ {id:3,title:'هل يكفي المبلغ؟',desc:'معكِ نقود، هل تكفي للشراء؟',key:'g3',run:game3},
+ {id:4,title:'كم الباقي؟',desc:'البائع يرجع لكِ الباقي',key:'g4',run:game4}
+];
+let state={game:null,round:0};
+
+function header(title){
+  return '<div class="dots">'+[...Array(ROUNDS)].map((_,i)=>'<i class="'+(i<state.round?'on':'')+'"></i>').join('')+'</div>'+
+         (title?'<div class="sub">'+title+'</div>':'');
+}
+
+function showStart(){
+  $stage.innerHTML='';
+  $stage.append(h('<div class="prompt">أهلاً بكِ في متجر النقود</div>'));
+  $stage.append(h('<div class="sub">اضغطي على الزر لتسمعي الصوت وتبدئي</div>'));
+  const b=h('<button class="start" id="go">ابدئي</button>');
+  b.onclick=()=>{say(['welcome']);showMenu();};
+  $stage.append(b);
+}
+
+function showMenu(){
+  state={game:null,round:0};
+  $stage.innerHTML='';
+  $stage.append(h('<div class="prompt">اختاري لعبة</div>'));
+  const m=h('<div class="menu"></div>');
+  GAMES.forEach(g=>{
+    const best=store('stars'+g.id)||0;
+    const b=h('<button class="game" id="game'+g.id+'"><span class="num">'+g.id+'</span><span><b>'+g.title+'</b><span>'+g.desc+'</span><div class="stars" aria-label="النجوم">'+'★'.repeat(best)+'<span style="opacity:.25;color:inherit">'+'★'.repeat(ROUNDS-best)+'</span></div></span></button>');
+    b.onclick=()=>{state={game:g,round:0,score:0};g.run(true);};
+    m.append(b);
+  });
+  $stage.append(m);
+}
+
+function nextRound(gotItFirstTry){
+  if(gotItFirstTry) state.score++;
+  state.round++;
+  if(state.round>=ROUNDS) return showEnd();
+  setTimeout(()=>state.game.run(false),1600);
+}
+function showEnd(){
+  const g=state.game, s=Math.max(1,state.score);
+  const best=store('stars'+g.id)||0; if(s>best) store('stars'+g.id,s);
+  setTimeout(()=>{
+    $stage.innerHTML='';
+    $stage.append(h('<div class="celebrate pop">'+'★'.repeat(s)+'</div>'));
+    $stage.append(h('<div class="prompt">انتهت اللعبة. أحسنتِ!</div>'));
+    const a=h('<div class="actions"></div>');
+    const again=h('<button class="big primary">العبي مرة أخرى</button>'); again.onclick=()=>{state={game:g,round:0,score:0};g.run(true)};
+    const menu=h('<button class="big ghost">اختاري لعبة أخرى</button>'); menu.onclick=showMenu;
+    a.append(again,menu); $stage.append(a);
+    say(['finish']);
+  },1400);
+}
+function feedback(el,text,kind){el.textContent=text;el.className='feedback '+kind;}
+
+/* ---------- Game 1: recognise money ---------- */
+function game1(first){
+  const pool=state.round<2?[1,2,5,10]:[1,2,5,10,50,100];
+  const target=rand(pool);
+  const others=shuffle(pool.filter(v=>v!==target)).slice(0,2);
+  const opts=shuffle([target,...others]);
+  let wrong=0;
+  $stage.innerHTML=header('تعرّفي على النقود');
+  $stage.append(h('<div class="prompt">أين '+target+' ريال؟</div>'));
+  const box=h('<div class="opts"></div>');
+  const fb=h('<div class="feedback"></div>');
+  opts.forEach(v=>{
+    const b=document.createElement('button');b.className='opt';b.append(money(v));
+    b.onclick=()=>{
+      if(b.classList.contains('dim')) return;
+      if(v===target){
+        b.classList.add('right','pop'); box.querySelectorAll('.opt').forEach(o=>o.disabled=true);
+        feedback(fb,'أحسنتِ!','good'); say([praise(),amt(v)],false); nextRound(wrong===0);
+      }else{
+        wrong++; b.classList.add('dim');
+        feedback(fb,'هذه '+v+' — حاولي مرة أخرى','soft');
+        say([amt(v),'retry'],false);
+        if(wrong>=2) [...box.children].find(o=>!o.classList.contains('dim')).classList.add('glow');
+      }
+    };
+    box.append(b);
+  });
+  $stage.append(box,fb);
+  say(first?['g1','i1','w_where',amt(target)]:['w_where',amt(target)]);
+}
+
+/* ---------- Game 2: make the amount ---------- */
+function game2(first){
+  const item=rand(ITEMS);
+  const price=3+Math.floor(Math.random()*(state.round<2?8:18)); // 3–10 first, then up to 20
+  let tray=[],wrong=0;
+  $stage.innerHTML=header('كوّني المبلغ');
+  $stage.append(h('<div class="item"><span class="pic" aria-hidden="true">'+item.pic+'</span><span class="iname">'+item.name.replace(/[ً-ْ]/g,'')+'</span><span class="tag"><span class="lbl">السعر</span>'+price+'<small>ريال</small></span></div>'));
+  const meter=h('<div class="meter"><i></i></div>');
+  const total=h('<div class="total"><span class="sub">في السلة:</span><span id="tot">0</span><span class="sub">ريال</span></div>');
+  const trayEl=h('<div class="tray" aria-label="السلة"></div>');
+  const wallet=h('<div class="wallet"></div>');
+  const fb=h('<div class="feedback"></div>');
+  const actions=h('<div class="actions"></div>');
+  const done=h('<button class="big primary">ادفعي</button>');
+  actions.append(done);
+  function render(){
+    const t=tray.reduce((a,b)=>a+b,0);
+    total.querySelector('#tot').textContent=t;
+    meter.querySelector('i').style.width=Math.min(100,t/price*100)+'%';
+    meter.className='meter'+(t>price?' over':t===price?' done':'');
+    trayEl.innerHTML='';
+    if(!tray.length) trayEl.append(h('<span class="empty">السلة فارغة — اضغطي على النقود بالأسفل</span>'));
+    tray.forEach((v,i)=>{const b=document.createElement('button');b.append(money(v,true));b.setAttribute('aria-label','إرجاع');
+      b.onclick=()=>{tray.splice(i,1);render();const t2=tray.reduce((a,c)=>a+c,0);say(t2?[amt(t2)]:[],false);};trayEl.append(b);});
+    return t;
+  }
+  [1,2,5,10].forEach(v=>{const b=document.createElement('button');b.append(money(v));
+    b.onclick=()=>{if(tray.reduce((a,c)=>a+c,0)+v>30){say(['more'],false);return;}tray.push(v);const t=render();feedback(fb,'','');say([amt(t)],false);};
+    wallet.append(b);});
+  done.onclick=()=>{
+    const t=tray.reduce((a,b)=>a+b,0);
+    if(t===price){done.disabled=true;wallet.querySelectorAll('button').forEach(b=>b.disabled=true);
+      feedback(fb,'أحسنتِ! دفعتِ '+price+' ريال بالضبط','good');say([praise()],false);nextRound(wrong===0);}
+    else if(t<price){wrong++;feedback(fb,'المبلغ أقل من السعر. أضيفي نقوداً','soft');say(['less'],false);}
+    else {wrong++;feedback(fb,'المبلغ أكثر من السعر. اضغطي على نقود في السلة لإرجاعها','soft');say(['more'],false);}
+  };
+  $stage.append(meter,total,trayEl,wallet,fb,actions);
+  render();
+  say(first?['g2','i2','item_'+item.k,'w_price',amt(price)]:['item_'+item.k,'w_price',amt(price)]);
+}
+
+/* ---------- Game 3: is it enough? ---------- */
+function game3(first){
+  const item=rand(ITEMS);
+  const price=rand(AMOUNTS.filter(n=>n>=3&&n<=(state.round<2?15:30)));
+  const enough=Math.random()<0.5;
+  let have;
+  if(enough) have=rand(AMOUNTS.filter(n=>n>=price&&n<=price+10));
+  else have=rand(AMOUNTS.filter(n=>n<price&&n>=Math.max(1,price-8)));
+  let wrong=0;
+  $stage.innerHTML=header('هل يكفي المبلغ؟');
+  const pair=h('<div class="pair"></div>');
+  const p1=h('<div class="panel"><h3>معكِ</h3><div class="pile"></div><div class="total">'+have+' <span class="sub">ريال</span></div></div>');
+  breakDown(have).forEach(v=>p1.querySelector('.pile').append(money(v,true)));
+  const p2=h('<div class="panel"><h3>تريدين شراء</h3><div class="item"><span class="pic" aria-hidden="true">'+item.pic+'</span><span class="tag"><span class="lbl">السعر</span>'+price+'<small>ريال</small></span></div></div>');
+  pair.append(p1,p2);
+  $stage.append(pair,h('<div class="prompt">هل يكفي المبلغ؟</div>'));
+  const fb=h('<div class="feedback"></div>');
+  const a=h('<div class="actions"></div>');
+  const yes=h('<button class="big yes">نعم، يكفي</button>'), no=h('<button class="big no">لا، لا يكفي</button>');
+  const answer=ans=>{
+    if(ans===enough){yes.disabled=no.disabled=true;
+      feedback(fb,enough?'نعم، المبلغ يكفي':'لا، المبلغ لا يكفي','good');say([praise(),enough?'enough_yes':'enough_no'],false);nextRound(wrong===0);}
+    else{wrong++;feedback(fb,'انظري مرة أخرى: معكِ '+have+'، والسعر '+price,'soft');say(['retry','w_withyou',amt(have),'w_price',amt(price)],false);}
+  };
+  yes.onclick=()=>answer(true); no.onclick=()=>answer(false);
+  a.append(yes,no); $stage.append(fb,a);
+  say((first?['g3','i3']:[]).concat(['w_withyou',amt(have),'w_price',amt(price),'q_enough']));
+}
+
+/* ---------- Game 4: change (counting up) ---------- */
+function makeChangeTask(){
+  const r=Math.random(), easy=state.round<2;
+  if(easy||r<0.34){const p=1+Math.floor(Math.random()*9);return{paid:10,price:p};}
+  if(r<0.67){const p=rand([20,25,30,35,40,45]);return{paid:50,price:p};}
+  const p=rand([30,40,50,60,70,80,90]);return{paid:100,price:p};
+}
+function countSteps(price,paid){ // numbers said while counting up from price to paid
+  const s=[];let x=price;
+  if(paid===10){while(x<paid){x+=1;s.push(x)}return s;}
+  if(x%10===5){x+=5;s.push(x)}
+  while(x<paid){x+=10;s.push(x)}
+  return s;
+}
+function game4(first){
+  const item=rand(ITEMS);
+  const {paid,price}=makeChangeTask();
+  const change=paid-price;
+  const cands=AMOUNTS.filter(n=>n!==change&&Math.abs(n-change)<=10&&n<paid);
+  const opts=shuffle([change,...shuffle(cands).slice(0,2)]);
+  let wrong=0;
+  $stage.innerHTML=header('كم الباقي؟');
+  const pair=h('<div class="pair"></div>');
+  pair.append(h('<div class="panel"><h3>السعر</h3><div class="item"><span class="pic" aria-hidden="true">'+item.pic+'</span><span class="tag">'+price+'<small>ريال</small></span></div></div>'));
+  const pp=h('<div class="panel"><h3>أعطيتِ البائع</h3><div class="pile"></div></div>'); pp.querySelector('.pile').append(money(paid)); pair.append(pp);
+  $stage.append(pair,h('<div class="prompt">كم يرجع لكِ البائع؟</div>'));
+  const counter=h('<div class="count" aria-live="polite"></div>');
+  const box=h('<div class="opts"></div>');
+  const fb=h('<div class="feedback"></div>');
+  opts.forEach(v=>{
+    const b=h('<button class="ansnum">'+v+'<small>ريال</small></button>');
+    b.onclick=()=>{
+      if(b.classList.contains('dim'))return;
+      if(v===change){b.classList.add('right','pop');box.querySelectorAll('button').forEach(o=>o.disabled=true);
+        feedback(fb,'أحسنتِ! الباقي '+change+' ريال','good');say([praise(),'w_change',amt(change)],false);nextRound(wrong===0);}
+      else{wrong++;b.classList.add('dim');feedback(fb,'حاولي مرة أخرى، أو اضغطي «عُدّي معي»','soft');say(['retry'],false);
+        if(wrong>=2) countUp();}
+    };
+    box.append(b);
+  });
+  const a=h('<div class="actions"></div>');
+  const hint=h('<button class="big ghost">عُدّي معي</button>');
+  let counting=false;
+  async function countUp(){
+    if(counting)return;counting=true;
+    counter.innerHTML='';
+    const steps=countSteps(price,paid);
+    const chips=[price,...steps].map(n=>{const s=h('<span>'+n+'</span>');counter.append(s);return s;});
+    chips[0].classList.add('now');
+    await say(['count_intro','w_price',amt(price)],false);
+    for(let i=0;i<steps.length;i++){
+      chips[i].classList.remove('now');chips[i+1].classList.add('now');
+      await say([amt(steps[i])],false);
+      await wait(250);
+    }
+    counter.append(h('<span class="now">الباقي '+change+'</span>'));
+    await say(['w_change',amt(change)],false);
+    counting=false;
+  }
+  hint.onclick=countUp;
+  a.append(hint);
+  $stage.append(box,counter,fb,a);
+  say((first?['g4','i4']:[]).concat(['w_price',amt(price),'w_paid',amt(paid),'q_change']));
+}
+
+/* ---------- Teacher page: recording script ---------- */
+function showTeacher(){
+  $stage.innerHTML='';$stage.className='stage teacher';
+  const voiceName=arVoice?arVoice.name+' ('+arVoice.lang+')':'لا يوجد صوت عربي في هذا الجهاز';
+  $stage.append(h('<h2>نص التسجيل الصوتي</h2>'));
+  $stage.append(h('<p>يعمل التطبيق الآن بصوت الجهاز: <b>'+voiceName+'</b>. لتحسين النطق، تُسجَّل كل جملة في ملف صوتي منفصل بالاسم الموجود في العمود الأول (مثل <code dir="ltr">amt_13.mp3</code>)، ثم توضع الملفات في مجلد <code dir="ltr">audio</code> بجانب الصفحة مع ملف <code dir="ltr">manifest.json</code>. أي جملة لم تُسجَّل يقرؤها صوت الجهاز تلقائياً.</p>'));
+  $stage.append(h('<p>العدد الكلي: <b>'+Object.keys(PHRASES).length+'</b> جملة قصيرة. يُفضّل التسجيل في مكان هادئ، بصوت واضح وهادئ، مع ترك ثانية صمت قبل الكلام وبعده.</p>'));
+  const wrap=h('<div class="scriptwrap"><table><thead><tr><th>اسم الملف</th><th>النص</th><th>الحالة</th><th></th></tr></thead><tbody></tbody></table></div>');
+  const tb=wrap.querySelector('tbody');
+  Object.entries(PHRASES).forEach(([k,t])=>{
+    const tr=h('<table><tr><td><code>'+k+'.mp3</code></td><td>'+t+'</td><td>'+(recorded.has(k)?'<span class="pill">مسجّل</span>':'<span class="pill off">صوت الجهاز</span>')+'</td><td><button>استماع</button></td></tr></table>').querySelector('tr');
+    tr.querySelector('button').onclick=()=>say([k],false);
+    tb.append(tr);
+  });
+  $stage.append(wrap);
+  const reset=h('<button class="big ghost" style="align-self:flex-start">مسح نجوم الطالبة على هذا الجهاز</button>');
+  reset.onclick=()=>{[1,2,3,4].forEach(i=>{try{localStorage.removeItem('stars'+i)}catch(e){}});reset.textContent='تم المسح';};
+  $stage.append(reset);
+}
+
+/* ---------- wiring ---------- */
+document.getElementById('replay').onclick=()=>say(lastSay.length?lastSay:['welcome'],false);
+document.getElementById('home').onclick=()=>{ if(location.hash==='#teacher') location.hash=''; $stage.className='stage'; showMenu(); };
+function route(){ if(location.hash==='#teacher') showTeacher(); else { $stage.className='stage'; showStart(); } }
+window.addEventListener('hashchange',route);
+route();
+</script>
