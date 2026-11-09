@@ -3,142 +3,199 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;600;700&display=swap">
 <style>
-/* Layout: one-screen app — slim top bar, one big task card centered, large touch targets, nothing else on screen */
+/* Layout: one-screen app. A 16:9 "shop scene" (SVG background + HTML overlays) sits in the middle,
+   the wallet row under it, one big action under that. Everything else stays off-screen. */
 :root{
-  --bg:#EAF1ED;          /* pale sage ground */
-  --card:#FFFFFF;
-  --ink:#16302A;         /* deep green-black text */
-  --muted:#5B6F68;
-  --line:#CFDDD6;
-  --accent:#0E6B50;      /* Saudi green, buttons and focus */
-  --accent-ink:#FFFFFF;
-  --sun:#F2B33D;         /* saffron: praise, highlights */
-  --good:#1E8A5A; --good-bg:#DDF2E6;
-  --soft-bad:#B5651D; --soft-bad-bg:#FCEBD8;  /* gentle orange, never red */
+  --bg:#EAF1ED; --card:#FFFFFF; --ink:#16302A; --muted:#5B6F68; --line:#CFDDD6;
+  --accent:#0E6B50; --accent-ink:#FFFFFF; --sun:#F2B33D;
+  --good:#1E8A5A; --good-bg:#DDF2E6; --soft-bad:#B5651D; --soft-bad-bg:#FCEBD8;
   --tray:#F4F8F6;
-  --font:"Readex Pro","Noto Sans Arabic","Segoe UI",Tahoma,sans-serif;
-  --r:20px;
+  --wall:#F7EFE3; --wall2:#EADFCE; --floor:#D9C7AE; --wood:#C98F5A; --wood2:#E0B07E; --shelf:#8D6744;
+  --font:"Readex Pro","Noto Sans Arabic","Segoe UI",Tahoma,sans-serif; --r:20px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0F1A17;--card:#182622;--ink:#E8F1EC;--muted:#9DB2AA;--line:#2B3D37;
-  --accent:#35B488;--accent-ink:#06261B;--sun:#F2B33D;--good:#5FD39C;--good-bg:#173A2B;
-  --soft-bad:#F0A766;--soft-bad-bg:#3A2A1A;--tray:#13201C;color-scheme:dark}}
+  --bg:#0F1A17;--card:#182622;--ink:#E8F1EC;--muted:#9DB2AA;--line:#2B3D37;--accent:#35B488;--accent-ink:#06261B;
+  --good:#5FD39C;--good-bg:#173A2B;--soft-bad:#F0A766;--soft-bad-bg:#3A2A1A;--tray:#13201C;
+  --wall:#2A2F36;--wall2:#22272D;--floor:#3A3028;--wood:#8A5F3C;--wood2:#A97A50;--shelf:#5E4530;color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0F1A17;--card:#182622;--ink:#E8F1EC;--muted:#9DB2AA;--line:#2B3D37;
-  --accent:#35B488;--accent-ink:#06261B;--sun:#F2B33D;--good:#5FD39C;--good-bg:#173A2B;
-  --soft-bad:#F0A766;--soft-bad-bg:#3A2A1A;--tray:#13201C;color-scheme:dark}
+  --bg:#0F1A17;--card:#182622;--ink:#E8F1EC;--muted:#9DB2AA;--line:#2B3D37;--accent:#35B488;--accent-ink:#06261B;
+  --good:#5FD39C;--good-bg:#173A2B;--soft-bad:#F0A766;--soft-bad-bg:#3A2A1A;--tray:#13201C;
+  --wall:#2A2F36;--wall2:#22272D;--floor:#3A3028;--wood:#8A5F3C;--wood2:#A97A50;--shelf:#5E4530;color-scheme:dark}
 
+*{box-sizing:border-box}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:18px;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));}
-#app{max-width:880px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;gap:16px;padding-block:12px 24px}
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));overflow-x:hidden}
+#app{max-width:960px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;gap:14px;padding-block:10px 24px}
 button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none;-webkit-tap-highlight-color:transparent}
 button:focus-visible{outline:4px solid var(--sun);outline-offset:3px}
+button:disabled{cursor:default}
+[hidden]{display:none!important}
 
 /* top bar */
 .bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .brand{font-weight:700;font-size:22px;display:flex;align-items:center;gap:10px}
-.brand .dot{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 50% 50%,#E9C46A 0 45%,#C9CDD2 46% 100%);box-shadow:inset 0 0 0 2px rgba(0,0,0,.15)}
-.iconbtn{min-width:64px;height:64px;border-radius:18px;background:var(--card);border:2px solid var(--line);font-size:28px;display:grid;place-items:center;padding:0 14px;font-size:18px;font-weight:600;gap:4px}
+.brand .dot{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle,#E9C46A 0 45%,#C9CDD2 46% 100%);box-shadow:inset 0 0 0 2px rgba(0,0,0,.15)}
+.bar .group{display:flex;gap:10px}
+.iconbtn{min-width:64px;height:64px;border-radius:18px;background:var(--card);border:2px solid var(--line);display:grid;place-items:center;padding:0 14px}
 .iconbtn svg{width:30px;height:30px}
 .iconbtn.speak{background:var(--accent);color:var(--accent-ink);border-color:transparent}
-.bar .group{display:flex;gap:10px}
 
 /* stage */
-.stage{flex:1;background:var(--card);border-radius:28px;border:2px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;align-items:center;justify-content:center;text-align:center}
-.prompt{font-size:clamp(24px,5vw,34px);font-weight:700;text-wrap:balance;line-height:1.4}
+.stage{flex:1;background:var(--card);border-radius:28px;border:2px solid var(--line);padding:18px;display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:flex-start;text-align:center}
+.prompt{font-size:clamp(22px,4.5vw,32px);font-weight:700;text-wrap:balance;line-height:1.4}
 .sub{color:var(--muted);font-size:18px}
+.caption{min-height:30px;color:var(--muted);font-size:17px}
 .dots{display:flex;gap:8px;justify-content:center}
 .dots i{width:16px;height:16px;border-radius:50%;background:var(--line)}
 .dots i.on{background:var(--sun)}
+.lvlhead{display:flex;align-items:center;gap:14px;width:100%;justify-content:center;flex-wrap:wrap}
+.lvlhead .sub{font-weight:600}
 
 /* menu */
-.menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;width:100%}
-@media (max-width:560px){.menu{grid-template-columns:1fr}}
-.game{background:var(--tray);border:2px solid var(--line);border-radius:var(--r);padding:20px;display:flex;align-items:center;gap:16px;text-align:start;min-height:120px}
-.game:hover{border-color:var(--accent)}
-.game .num{flex:none;width:56px;height:56px;border-radius:16px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-size:26px}
-.game b{display:block;font-size:22px}
-.game span{color:var(--muted);font-size:16px}
-.game .stars{color:var(--sun);font-size:18px;letter-spacing:2px;margin-top:4px}
+.menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;width:100%}
+.lvl{background:var(--tray);border:2px solid var(--line);border-radius:var(--r);padding:18px;display:flex;align-items:center;gap:16px;text-align:start;min-height:130px}
+.lvl:hover{border-color:var(--accent)}
+.lvl .art{flex:none;width:92px;height:72px;display:flex;align-items:center;justify-content:center;gap:4px}
+.lvl .art .ico{width:56px;height:56px}
+.lvl b{display:block;font-size:22px}
+.lvl span.d{color:var(--muted);font-size:16px}
+.lvl .stars{color:var(--sun);font-size:18px;letter-spacing:2px;margin-top:4px}
+.lvl .stars em{font-style:normal;opacity:.25}
 .start{background:var(--accent);color:var(--accent-ink);font-size:26px;font-weight:700;padding:22px 48px;border-radius:24px}
 
-/* money */
-.money{display:inline-flex;align-items:center;justify-content:center;position:relative;flex:none;user-select:none;transition:transform .15s}
-.note{width:150px;height:76px;border-radius:10px;color:#fff;box-shadow:0 2px 0 rgba(0,0,0,.18);overflow:hidden;flex-direction:column;line-height:1}
-.note::before{content:"";position:absolute;inset:6px;border:2px solid rgba(255,255,255,.45);border-radius:6px}
-.note::after{content:"";position:absolute;width:56px;height:56px;border-radius:50%;inset-inline-start:-14px;top:10px;background:rgba(255,255,255,.18)}
-.note .v{font-size:34px;font-weight:700;position:relative;z-index:1}
-.note .u{font-size:14px;position:relative;z-index:1;margin-top:4px}
-.n5{background:linear-gradient(135deg,#7B4FA0,#5D3A80)}
-.n10{background:linear-gradient(135deg,#9A6B3F,#76502D)}
-.n50{background:linear-gradient(135deg,#2F8A5A,#1F6643)}
-.n100{background:linear-gradient(135deg,#B8434A,#8E2F35)}
-.coin{width:84px;height:84px;border-radius:50%;flex-direction:column;line-height:1;color:#3A2E12;box-shadow:0 2px 0 rgba(0,0,0,.2)}
-.coin .v{font-size:30px;font-weight:700}.coin .u{font-size:12px;margin-top:2px}
-.c1{background:radial-gradient(circle,#EBC765 0 52%,#C5CAD0 53% 100%)}
-.c2{background:radial-gradient(circle,#D3D7DC 0 52%,#E2B850 53% 100%)}
-.money.small.note{width:96px;height:50px}.money.small.note .v{font-size:22px}.money.small.note .u{font-size:11px}
-.money.small.coin{width:56px;height:56px}.money.small.coin .v{font-size:20px}.money.small.coin .u{display:none}
-.money.small.note::after{width:34px;height:34px;top:8px}
+/* icons */
+.ico{width:64px;height:64px;display:block}
 
-/* option buttons wrapping money */
-.opts{display:flex;flex-wrap:wrap;gap:18px;justify-content:center}
-.opt{padding:14px;border-radius:22px;border:3px solid transparent;background:var(--tray);min-width:120px;min-height:120px;display:grid;place-items:center;transition:opacity .2s,border-color .2s}
-.opt:hover .money{transform:scale(1.04)}
-.opt.dim{opacity:.35}
+/* ===== scene ===== */
+.scene{position:relative;width:100%;max-width:820px;aspect-ratio:16/9;border-radius:22px;overflow:hidden;background:var(--wall);user-select:none}
+.scene>svg{position:absolute;inset:0;width:100%;height:100%}
+.ov{position:absolute}
+.shelf{left:5%;top:12%;width:32.5%;height:42%;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.shelf .slot{display:flex;align-items:flex-end;justify-content:center;padding-bottom:1%}
+.shelf .item{width:72%;max-width:84px;aspect-ratio:1;padding:0;border-radius:12px}
+.shelf .item .ico{width:100%;height:100%}
+.shelf .item.gone{visibility:hidden}
+.shelf .item.glow{box-shadow:0 0 0 5px var(--sun),0 0 24px var(--sun);border-radius:14px}
+.citem{left:62%;top:42.5%;width:11%;aspect-ratio:1;display:flex;align-items:flex-end;justify-content:center}
+.citem .ico{width:100%;height:100%}
+.citem.pop{animation:pop .4s ease-out}
+.tagov{left:58%;top:22%;display:flex;justify-content:center;width:20%}
+.tag{background:var(--sun);color:#3A2600;border-radius:12px;padding:2px 12px;font-weight:700;font-size:clamp(14px,2.6vw,26px);display:flex;align-items:baseline;gap:6px;white-space:nowrap;position:relative;font-variant-numeric:tabular-nums}
+.tag::after{content:"";position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);border:8px solid transparent;border-top-color:var(--sun);border-bottom:0}
+.tag small{font-size:.55em;font-weight:600}
+.tag.pulse{animation:pulse 1s ease-in-out 2}
+.trayov{left:74%;top:62%;width:24%;height:30%;border:3px dashed rgba(255,255,255,.7);border-radius:14px;display:flex;flex-wrap:wrap;gap:3%;align-content:flex-start;justify-content:center;padding:6px;gap:6px;background:rgba(255,255,255,.08);transition:background .2s,border-color .2s}
+.trayov.over{background:rgba(242,179,61,.35);border-color:var(--sun)}
+.trayov .money{cursor:pointer}
+.changeov{left:50%;top:63%;width:22%;height:30%;display:flex;flex-wrap:wrap;gap:3%;align-content:flex-start;justify-content:center;padding:2%}
+.listov{left:40%;top:6%;width:18%;background:rgba(255,255,255,.9);color:#222;border-radius:10px;padding:4px;display:flex;flex-direction:column;gap:4px;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.listov h4{margin:0;font-size:clamp(10px,1.6vw,15px);text-align:center;font-weight:700}
+.listov .li{display:flex;align-items:center;gap:6px;background:#f3f3f3;border-radius:8px;padding:2px 4px}
+.listov .li .ico{width:clamp(18px,4vw,36px);height:clamp(18px,4vw,36px)}
+.listov .li .chk{margin-inline-start:auto;width:clamp(14px,2.6vw,22px);height:clamp(14px,2.6vw,22px);border-radius:50%;border:2px solid #999}
+.listov .li.done .chk{background:var(--good);border-color:var(--good)}
+.listov .li.done .chk::after{content:"✓";color:#fff;font-size:.75em;display:block;text-align:center;line-height:1.5}
+.bubble{left:44%;top:14%;background:#fff;color:#222;border-radius:14px;padding:4px 10px;font-weight:600;font-size:clamp(11px,1.9vw,17px);box-shadow:0 2px 6px rgba(0,0,0,.15);max-width:28%;text-align:center;opacity:0;transition:opacity .3s}
+.bubble.show{opacity:1}
+.bubble::after{content:"";position:absolute;right:18%;bottom:-8px;border:8px solid transparent;border-top-color:#fff;border-bottom:0}
+/* characters */
+.girl .out,.cashier .out{display:none}
+.girl.arm-out .out{display:block}.girl.arm-out .rest{display:none}
+.cashier.arm-out .out{display:block}
+.mouth{transition:d .3s}
+.happy .mouth{d:path("M408 209 Q420 224 432 209")}
+.cashier.happy .cmouth{d:path("M690 210 Q700 222 710 210")}
+
+/* ===== money ===== */
+.money{display:inline-flex;align-items:center;justify-content:center;position:relative;flex:none;user-select:none;transition:transform .15s;--k:1;font-size:calc(var(--w)*var(--k)*.19);touch-action:none}
+.money.sm{--k:.56}.money.lg{--k:1.35}.money.xl{--k:1.9}
+.money .ar{font-weight:700;position:relative;z-index:1;line-height:1}
+.money .en{position:absolute;z-index:1;font-size:.5em;font-weight:600;opacity:.95;line-height:1}
+.note{--w:150px;width:calc(var(--w)*var(--k));height:calc(var(--w)*var(--k)*.47);border-radius:.35em;color:#fff;box-shadow:0 2px 0 rgba(0,0,0,.18);overflow:hidden}
+.note::before{content:"";position:absolute;inset:6%;border:1.5px solid rgba(255,255,255,.5);border-radius:.25em}
+.note .orn{position:absolute;inset-inline-start:7%;top:16%;width:30%;aspect-ratio:1;border-radius:50%;background:repeating-conic-gradient(rgba(255,255,255,.4) 0 14deg,transparent 14deg 45deg);box-shadow:inset 0 0 0 .12em rgba(255,255,255,.35)}
+.note .ar{font-size:1.9em;inset-inline-end:10%;position:absolute;top:50%;transform:translateY(-54%)}
+.note .en{inset-inline-start:9%;bottom:9%}
+.note .u{position:absolute;inset-inline-end:10%;bottom:8%;font-size:.58em;z-index:1;opacity:.95}
+.n5{--w:150px;background:linear-gradient(135deg,#7E55A6,#5C3C80)}
+.n10{--w:158px;background:linear-gradient(135deg,#A2703F,#7A522B)}
+.n50{--w:166px;background:linear-gradient(135deg,#2F8E5B,#1E6743)}
+.n100{--w:174px;background:linear-gradient(135deg,#B9404A,#8C2C34)}
+.coin{--w:88px;width:calc(var(--w)*var(--k));height:calc(var(--w)*var(--k));border-radius:50%;color:#3A2E12;box-shadow:0 2px 0 rgba(0,0,0,.22)}
+.coin .ar{font-size:1.9em}
+.coin .en{bottom:16%;left:50%;transform:translateX(-50%)}
+.c1{background:radial-gradient(circle,#EBC765 0 54%,#C8CDD3 55% 100%)}
+.c2{background:radial-gradient(circle,#D4D8DD 0 54%,#E2B850 55% 100%)}
+.money.lifted{opacity:.35}
+.dragging{position:fixed;z-index:50;pointer-events:none;margin:0;transform:scale(1.05);filter:drop-shadow(0 8px 10px rgba(0,0,0,.25))}
+.money.glow{box-shadow:0 0 0 5px var(--sun),0 0 26px var(--sun)}
+.money.dim{opacity:.3}
+
+/* wallet */
+.wallet{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;align-items:center;width:100%;min-height:80px;background:var(--tray);border-radius:var(--r);padding:12px;border:2px solid var(--line)}
+.wallet .lbl{width:100%;color:var(--muted);font-size:16px;font-weight:600}
+.wallet.hl{border-color:var(--sun);box-shadow:0 0 0 4px color-mix(in srgb,var(--sun) 30%,transparent)}
+.wallet button{padding:4px;border-radius:14px;touch-action:none}
+.wallet button:active .money{transform:scale(.94)}
+
+/* option buttons */
+.opts{display:flex;flex-wrap:wrap;gap:16px;justify-content:center}
+.opt{padding:12px 14px;border-radius:22px;border:3px solid transparent;background:var(--tray);min-width:120px;min-height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:opacity .2s,border-color .2s}
+.opt .pile{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;max-width:170px}
+.opt .num{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.opt .num small{font-size:15px;font-weight:600;margin-inline-start:4px}
+.opt.dim{opacity:.3}
 .opt.glow{border-color:var(--sun);box-shadow:0 0 0 6px color-mix(in srgb,var(--sun) 30%,transparent)}
 .opt.right{border-color:var(--good);background:var(--good-bg)}
 
-/* item + price tag */
-.item{display:flex;align-items:center;gap:18px;justify-content:center;flex-wrap:wrap}
-.item .pic{font-size:84px;line-height:1}
-.tag{background:var(--sun);color:#3A2600;border-radius:14px 14px 14px 14px;padding:10px 22px;font-weight:700;font-size:30px;display:flex;align-items:baseline;gap:8px;position:relative}
-.tag small{font-size:16px;font-weight:600}
-.tag .lbl{font-size:16px;font-weight:600;opacity:.8}
-.iname{font-size:22px;font-weight:600}
-
-/* tray */
-.tray{width:100%;min-height:110px;background:var(--tray);border:3px dashed var(--line);border-radius:var(--r);padding:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center}
-.tray .empty{color:var(--muted)}
-.tray button{padding:0}
-.total{font-size:26px;font-weight:700;display:flex;gap:10px;align-items:baseline;justify-content:center}
-.meter{width:100%;max-width:420px;height:18px;border-radius:9px;background:var(--line);overflow:hidden}
-.meter i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
-.meter.over i{background:var(--soft-bad)}
-.meter.done i{background:var(--good)}
-.wallet{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;align-items:center}
-.wallet button{padding:6px;border-radius:16px}
-.wallet button:active .money{transform:scale(.94)}
+/* money wall */
+.wall{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;width:100%;align-items:center;justify-items:center}
+.wall button{padding:10px;border-radius:18px;background:var(--tray);border:2px solid var(--line);display:grid;place-items:center;min-height:130px;width:100%}
+.wall button.sel{border-color:var(--sun)}
+.bigview{display:flex;flex-direction:column;align-items:center;gap:10px;min-height:150px;justify-content:center}
+.eqrow{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;min-height:110px}
+.eqrow .eq{font-size:40px;font-weight:700}
+.eqrow .group{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:300px}
 
 .actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
-.big{min-width:150px;min-height:72px;border-radius:20px;font-size:24px;font-weight:700;padding:0 28px}
+.big{min-width:150px;min-height:72px;border-radius:20px;font-size:24px;font-weight:700;padding:0 28px;display:inline-flex;align-items:center;justify-content:center;gap:10px}
+.big svg{width:30px;height:30px}
 .big.primary{background:var(--accent);color:var(--accent-ink)}
+.big.primary.glow{box-shadow:0 0 0 6px color-mix(in srgb,var(--sun) 45%,transparent)}
 .big.yes{background:var(--good-bg);color:var(--good);border:3px solid var(--good)}
 .big.no{background:var(--soft-bad-bg);color:var(--soft-bad);border:3px solid var(--soft-bad)}
 .big.ghost{background:var(--tray);border:2px solid var(--line)}
-
-.feedback{min-height:48px;font-size:24px;font-weight:700;border-radius:16px;padding:8px 18px}
+.feedback{min-height:48px;font-size:22px;font-weight:700;border-radius:16px;padding:8px 18px}
 .feedback.good{background:var(--good-bg);color:var(--good)}
 .feedback.soft{background:var(--soft-bad-bg);color:var(--soft-bad)}
-.pile{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;max-width:520px}
-.pair{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;width:100%}
-.panel{background:var(--tray);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px;align-items:center;flex:1 1 220px;min-width:0}
-.panel h3{margin:0;font-size:18px;color:var(--muted);font-weight:600}
 .count{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .count span{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:6px 12px;font-weight:700;font-size:22px;font-variant-numeric:tabular-nums}
 .count span.now{border-color:var(--sun);background:color-mix(in srgb,var(--sun) 25%,var(--card))}
-.ansnum{font-size:30px;font-weight:700;min-width:110px;min-height:84px;border-radius:20px;background:var(--tray);border:3px solid var(--line);display:grid;place-items:center;padding:0 18px;font-variant-numeric:tabular-nums}
-.ansnum small{font-size:15px;font-weight:600;display:block}
+.meterwrap{width:100%;max-width:480px;display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.meter{position:relative;height:22px;border-radius:11px;background:var(--line);overflow:visible}
+.meter i{display:block;height:100%;width:0;background:var(--accent);border-radius:11px;transition:width .4s}
+.meter.over i{background:var(--soft-bad)}.meter.done i{background:var(--good)}
+.meter .mark{position:absolute;top:-8px;width:4px;height:38px;background:var(--sun);border-radius:2px;transform:translateX(-50%)}
+.meter .mark::after{content:attr(data-l);position:absolute;top:40px;left:50%;transform:translateX(-50%);font-size:14px;font-weight:700;color:var(--muted);white-space:nowrap}
 
-.celebrate{font-size:64px;color:var(--sun);letter-spacing:6px}
-.note-warn{font-size:15px;color:var(--soft-bad);background:var(--soft-bad-bg);padding:8px 14px;border-radius:12px}
+/* reward */
+.rewardshelf{position:relative;width:100%;max-width:560px;height:120px;background:linear-gradient(transparent 0 70%,var(--shelf) 70% 82%,transparent 82%);display:flex;align-items:flex-end;justify-content:center;gap:10px;padding-bottom:36px}
+.rewardshelf .ico{width:64px;height:64px;animation:pop .5s ease-out}
+.celebrate{font-size:60px;color:var(--sun);letter-spacing:6px}
 
-/* teacher page */
+/* teacher */
 .teacher{text-align:start;align-items:stretch;justify-content:flex-start}
 .teacher h2{margin:0;font-size:24px}
+.teacher h3{margin:12px 0 0;font-size:19px}
 .teacher p{margin:0;color:var(--muted);line-height:1.7;max-width:65ch}
-.scriptwrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+.settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.setting{background:var(--tray);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.setting label{font-weight:600}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{padding:8px 14px;border-radius:12px;border:2px solid var(--line);background:var(--card);font-size:16px}
+.seg button.on{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+.scriptwrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;max-height:420px}
 table{border-collapse:collapse;width:100%;font-size:16px}
 th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:start;vertical-align:middle}
 th{background:var(--tray);font-weight:600;position:sticky;top:0}
@@ -146,407 +203,524 @@ td code{font-family:ui-monospace,Menlo,monospace;font-size:14px;direction:ltr;un
 td button{background:var(--tray);border:1px solid var(--line);border-radius:10px;padding:4px 10px;font-size:14px}
 .pill{display:inline-block;font-size:13px;padding:2px 10px;border-radius:999px;background:var(--good-bg);color:var(--good)}
 .pill.off{background:var(--tray);color:var(--muted)}
-.foot{text-align:center}
-.foot a{color:var(--muted);font-size:15px}
+.foot{text-align:center}.foot a{color:var(--muted);font-size:15px}
 
+@keyframes pop{0%{transform:scale(.7)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.pop{animation:pop .4s ease-out}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-@keyframes pop{0%{transform:scale(.8)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
-.pop{animation:pop .35s ease-out}
+@media (max-width:560px){.stage{padding:12px}.big{min-width:120px;min-height:64px;font-size:20px}}
 </style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="ic-juice" viewBox="0 0 64 64"><rect x="16" y="14" width="32" height="42" rx="4" fill="#E8663D"/><rect x="16" y="14" width="32" height="10" rx="4" fill="#F28B5B"/><rect x="20" y="30" width="24" height="16" rx="3" fill="#FFF3E6"/><circle cx="32" cy="38" r="5" fill="#E8663D"/><rect x="40" y="2" width="4" height="16" rx="2" fill="#2F6F9F" transform="rotate(12 42 10)"/></symbol>
+    <symbol id="ic-water" viewBox="0 0 64 64"><rect x="26" y="6" width="12" height="10" rx="2" fill="#2D7DBF"/><path d="M22 20 Q22 14 32 14 Q42 14 42 20 L44 54 Q44 60 32 60 Q20 60 20 54 Z" fill="#8FD0F7"/><rect x="22" y="30" width="20" height="14" fill="#FFFFFF" opacity=".9"/><path d="M26 24 L26 50" stroke="#FFFFFF" stroke-width="3" opacity=".6" stroke-linecap="round"/></symbol>
+    <symbol id="ic-shawarma" viewBox="0 0 64 64"><path d="M14 44 L36 12 Q46 8 50 18 L28 50 Q18 54 14 44 Z" fill="#E7C57C"/><path d="M14 44 L28 50 Q18 54 14 44Z" fill="#F4F4F4"/><path d="M26 28 L38 20" stroke="#C94F3D" stroke-width="4" stroke-linecap="round"/><path d="M30 34 L42 26" stroke="#6AA84F" stroke-width="4" stroke-linecap="round"/><path d="M12 46 L26 52 L22 60 L10 54Z" fill="#E9E9E9"/></symbol>
+    <symbol id="ic-notebook" viewBox="0 0 64 64"><rect x="14" y="8" width="38" height="48" rx="3" fill="#3B6FD6"/><rect x="14" y="8" width="9" height="48" fill="#27489A"/><rect x="28" y="20" width="18" height="3" rx="1.5" fill="#fff"/><rect x="28" y="28" width="18" height="3" rx="1.5" fill="#fff"/><rect x="28" y="36" width="12" height="3" rx="1.5" fill="#fff"/></symbol>
+    <symbol id="ic-pen" viewBox="0 0 64 64"><g transform="rotate(45 32 32)"><rect x="28" y="6" width="9" height="40" rx="2" fill="#2F3A4A"/><rect x="28" y="6" width="9" height="8" rx="2" fill="#4FA3E3"/><path d="M28 46 L32.5 58 L37 46 Z" fill="#E9B872"/><path d="M31 52 L32.5 58 L34 52Z" fill="#222"/></g></symbol>
+    <symbol id="ic-charger" viewBox="0 0 64 64"><rect x="26" y="8" width="4" height="14" rx="1" fill="#C9A227"/><rect x="34" y="8" width="4" height="14" rx="1" fill="#C9A227"/><rect x="18" y="22" width="28" height="26" rx="5" fill="#3B3B46"/><path d="M32 48 Q32 60 20 58" stroke="#3B3B46" stroke-width="4" fill="none" stroke-linecap="round"/><rect x="26" y="30" width="12" height="4" rx="2" fill="#7FD1A8"/></symbol>
+    <symbol id="ic-ball" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="#fff" stroke="#222" stroke-width="2"/><polygon points="32,20 42,27 38,39 26,39 22,27" fill="#222"/><path d="M32 20 L32 8 M42 27 L54 22 M38 39 L46 50 M26 39 L18 50 M22 27 L10 22" stroke="#222" stroke-width="2"/></symbol>
+    <symbol id="ic-biscuit" viewBox="0 0 64 64"><circle cx="32" cy="32" r="24" fill="#C68642"/><circle cx="32" cy="32" r="19" fill="#D9985A"/><circle cx="24" cy="28" r="3" fill="#6B3E1E"/><circle cx="36" cy="24" r="3" fill="#6B3E1E"/><circle cx="40" cy="36" r="3" fill="#6B3E1E"/><circle cx="28" cy="40" r="3" fill="#6B3E1E"/></symbol>
+    <symbol id="ic-speaker" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="ic-home" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7M5 10v10h14V10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-play" viewBox="0 0 24 24"><path d="M7 4v16l13-8z" fill="currentColor"/></symbol>
+    <symbol id="ic-hand" viewBox="0 0 24 24"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12m0-7.5a1.5 1.5 0 0 1 3 0V12m0-6a1.5 1.5 0 0 1 3 0v6m0-3a1.5 1.5 0 0 1 3 0v6a7 7 0 0 1-7 7h-1a7 7 0 0 1-6-3.4L4.5 15a1.6 1.6 0 0 1 2.7-1.7L8 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
 
 <div id="app" dir="rtl" lang="ar">
   <div class="bar">
     <div class="brand"><span class="dot" aria-hidden="true"></span>متجر النقود</div>
     <div class="group">
-      <button class="iconbtn speak" id="replay" aria-label="أعيدي الاستماع" title="أعيدي الاستماع">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
-      </button>
-      <button class="iconbtn" id="home" aria-label="الرئيسية" title="الرئيسية">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>
-      </button>
+      <button class="iconbtn speak" id="replay" aria-label="أعيدي الاستماع" title="أعيدي الاستماع"><svg><use href="#ic-speaker"/></svg></button>
+      <button class="iconbtn" id="home" aria-label="الرئيسية" title="الرئيسية"><svg><use href="#ic-home"/></svg></button>
     </div>
   </div>
   <main class="stage" id="stage"></main>
-  <div class="foot"><a href="#teacher" id="teacherLink">صفحة المعلمة: نص التسجيل الصوتي</a></div>
+  <div class="foot"><a href="#teacher">صفحة المعلمة: الإعدادات ونص التسجيل الصوتي</a></div>
 </div>
 
 <script>
 /* =========================================================
-   1) PHRASES — every sentence the app can say.
-   Each key is also the audio file name: audio/<key>.mp3
+   1) PHRASES — every sentence the app can say. key = audio/<key>.mp3
    ========================================================= */
 const UNITS={1:'واحِدٌ',2:'اثْنانِ',3:'ثَلاثَةٌ',4:'أَرْبَعَةٌ',5:'خَمْسَةٌ',6:'سِتَّةٌ',7:'سَبْعَةٌ',8:'ثَمانِيَةٌ',9:'تِسْعَةٌ'};
 const TENS={20:'عِشْرونَ',30:'ثَلاثونَ',40:'أَرْبَعونَ',50:'خَمْسونَ',60:'سِتّونَ',70:'سَبْعونَ',80:'ثَمانونَ',90:'تِسْعونَ'};
 const SMALL={1:'رِيالٌ واحِد',2:'رِيالان',3:'ثَلاثَةُ رِيالات',4:'أَرْبَعَةُ رِيالات',5:'خَمْسَةُ رِيالات',6:'سِتَّةُ رِيالات',7:'سَبْعَةُ رِيالات',8:'ثَمانِيَةُ رِيالات',9:'تِسْعَةُ رِيالات',10:'عَشَرَةُ رِيالات',
  11:'أَحَدَ عَشَرَ رِيالاً',12:'اثْنا عَشَرَ رِيالاً',13:'ثَلاثَةَ عَشَرَ رِيالاً',14:'أَرْبَعَةَ عَشَرَ رِيالاً',15:'خَمْسَةَ عَشَرَ رِيالاً',16:'سِتَّةَ عَشَرَ رِيالاً',17:'سَبْعَةَ عَشَرَ رِيالاً',18:'ثَمانِيَةَ عَشَرَ رِيالاً',19:'تِسْعَةَ عَشَرَ رِيالاً',100:'مِئَةُ رِيال'};
-function amountText(n){
-  if(SMALL[n]) return SMALL[n];
-  if(n%10===0) return TENS[n]+' رِيالاً';
-  return UNITS[n%10]+' وَ'+TENS[n-n%10]+' رِيالاً';
-}
-// Amounts the app is allowed to use (keeps the recording list finite)
+function amountText(n){ if(SMALL[n]) return SMALL[n]; if(n%10===0) return TENS[n]+' رِيالاً'; return UNITS[n%10]+' وَ'+TENS[n-n%10]+' رِيالاً'; }
 const AMOUNTS=[...Array(30)].map((_,i)=>i+1).concat([35,40,45,50,60,70,80,90,100]);
 
 const ITEMS=[
- {k:'juice',pic:'🧃',name:'عَصير'},{k:'water',pic:'💧',name:'ماء'},{k:'shawarma',pic:'🌯',name:'شاوَرْما'},
- {k:'notebook',pic:'📒',name:'دَفْتَر'},{k:'pen',pic:'🖊️',name:'قَلَم'},{k:'charger',pic:'🔌',name:'شاحِنُ جَوّال'},
- {k:'ball',pic:'⚽',name:'كُرَة'},{k:'book',pic:'📘',name:'كِتاب'},{k:'headphones',pic:'🎧',name:'سَمّاعات'},{k:'biscuit',pic:'🍪',name:'بَسْكويت'}
+ {k:'juice',name:'عَصير',plain:'عصير'},{k:'water',name:'ماء',plain:'ماء'},{k:'shawarma',name:'شاوَرْما',plain:'شاورما'},
+ {k:'notebook',name:'دَفْتَر',plain:'دفتر'},{k:'pen',name:'قَلَم',plain:'قلم'},{k:'charger',name:'شاحِنُ جَوّال',plain:'شاحن جوال'},
+ {k:'ball',name:'كُرَة',plain:'كرة'},{k:'biscuit',name:'بَسْكويت',plain:'بسكويت'}
 ];
 
 const PHRASES={
  welcome:'أَهْلاً بِكِ في مَتْجَرِ النُّقود. اخْتاري لُعْبَة.',
- g1:'لُعْبَةُ: تَعَرَّفي على النُّقود.',
- g2:'لُعْبَةُ: كَوِّني المَبْلَغ.',
- g3:'لُعْبَةُ: هَلْ يَكْفي المَبْلَغ؟',
- g4:'لُعْبَةُ: كَمِ الباقي؟',
+ l1:'جِدارُ النُّقود.', l2:'ادْفَعي السِّعْر.', l3:'هَلْ يَكْفي المَبْلَغ؟', l4:'كَمِ الباقي؟', l5:'رِحْلَةُ التَّسَوُّق.',
+ watch:'شاهِدي نورَة أَوَّلاً.', try:'الآنَ دَوْرُكِ. جَرِّبي.',
+ d_intro:'هذِهِ نورَة. ذَهَبَتْ إلى المَتْجَرِ لِتَشْتَرِيَ شَيْئاً.',
+ d_pick:'تَخْتارُ نورَة', d_look:'تَنْظُرُ نورَة إلى السِّعْر.', d_wallet:'تَفْتَحُ مَحْفَظَتَها وَتَخْتارُ النُّقود.',
+ d_same:'المَبْلَغُ مِثْلُ السِّعْرِ تَماماً. تَدْفَعُ نورَة.', thanks:'شُكْراً لَكِ!',
+ d_enough_1:'تَعُدُّ نورَة نُقودَها.', d_enough_2:'ثُمَّ تَنْظُرُ إلى السِّعْر.',
+ d_enough_yes:'المَبْلَغُ مِثْلُ السِّعْرِ أَوْ أَكْثَر. إِذَنْ يَكْفي.', d_enough_no:'المَبْلَغُ أَقَلُّ مِنَ السِّعْر. إِذَنْ لا يَكْفي.',
+ d_change_1:'لَيْسَ مَعَ نورَة المَبْلَغُ بِالضَّبْط. تُعْطي البائِعَةَ وَرَقَةً أَكْبَر.',
+ d_change_2:'تَعُدُّ البائِعَةُ مِنَ السِّعْرِ حَتّى المَبْلَغِ المَدْفوع، وَتُعْطي نورَة الباقي.',
+ d_trip_1:'مَعَ نورَة قائِمَةُ تَسَوُّق.', d_trip_2:'تَأْخُذُ مِنَ الرَّفِّ ما في القائِمَةِ فَقَط.', d_trip_3:'ثُمَّ تَدْفَعُ عِنْدَ البائِعَة.',
  i1:'اسْتَمِعي، ثُمَّ اضْغَطي على النُّقودِ الصَّحيحَة.',
- i2:'اضْغَطي على النُّقودِ لِتَضَعيها في السَّلَّة، حَتّى يَصيرَ المَبْلَغُ مِثْلَ السِّعْر.',
- i3:'انْظُري إلى نُقودِك، وإلى السِّعْر.',
- i4:'اشْتَرَيْتِ شَيْئاً، وأَعْطَيْتِ البائِعَ نُقوداً أَكْثَر.',
- w_where:'أَيْن',
- w_withyou:'مَعَكِ',
- w_price:'السِّعْرُ',
- w_paid:'المَبْلَغُ المَدْفوعُ',
- w_change:'الباقي',
- w_intray:'في السَّلَّة',
- q_enough:'هَلْ يَكْفي المَبْلَغ؟',
- q_change:'كَمْ يُرْجِعُ لَكِ البائِع؟',
- yes:'نَعَم',no:'لا',
- good1:'أَحْسَنْتِ!',good2:'مُمْتاز!',good3:'رائِع! أَحْسَنْتِ.',
- retry:'حاوِلي مَرَّةً أُخْرى.',
+ wall_intro:'اضْغَطي على أَيِّ نُقودٍ لِتَسْمَعي اسْمَها.',
+ tap_or_drag:'اسْحَبي النُّقودَ إلى الطّاوِلَة، أَوِ اضْغَطي عَلَيْها.',
+ m_1:'رِيالٌ واحِدٌ، قِطْعَةٌ مَعْدَنِيَّة.', m_2:'رِيالانِ، قِطْعَةٌ مَعْدَنِيَّة.', m_5:'وَرَقَةُ خَمْسَةِ رِيالات.', m_10:'وَرَقَةُ عَشَرَةِ رِيالات.', m_50:'وَرَقَةُ خَمْسينَ رِيالاً.', m_100:'وَرَقَةُ مِئَةِ رِيال.',
+ eq_5:'خَمْسَةُ رِيالاتٍ مَعْدَنِيَّةٌ تُساوي وَرَقَةَ الخَمْسَة.', eq_10:'وَرَقَتانِ مِنَ الخَمْسَةِ تُساويانِ وَرَقَةَ العَشَرَة.',
+ w_where:'أَيْن', w_withyou:'مَعَكِ', w_price:'السِّعْرُ', w_paid:'المَبْلَغُ المَدْفوعُ', w_change:'الباقي', w_total:'المَجْموعُ',
+ q_enough:'هَلْ يَكْفي المَبْلَغ؟', q_change:'كَمْ تُرْجِعُ لَكِ البائِعَة؟',
+ good1:'أَحْسَنْتِ!', good2:'مُمْتاز!', good3:'رائِع! أَحْسَنْتِ.',
+ retry:'حاوِلي مَرَّةً أُخْرى.', hint_glow:'اضْغَطي على النُّقودِ المُضيئَة.',
  less:'المَبْلَغُ أَقَلُّ مِنَ السِّعْر. أَضيفي نُقوداً.',
- more:'المَبْلَغُ أَكْثَرُ مِنَ السِّعْر. اضْغَطي على نُقودٍ في السَّلَّةِ لِإِرْجاعِها.',
- enough_yes:'نَعَم، المَبْلَغُ يَكْفي.',
- enough_no:'لا، المَبْلَغُ لا يَكْفي.',
+ more:'المَبْلَغُ أَكْثَرُ مِنَ السِّعْر. اضْغَطي على نُقودٍ في الطّاوِلَةِ لِإِرْجاعِها.',
+ enough_yes:'نَعَم، المَبْلَغُ يَكْفي.', enough_no:'لا، المَبْلَغُ لا يَكْفي.',
  count_intro:'نَعُدُّ مَعاً مِنَ السِّعْرِ حَتّى المَبْلَغِ المَدْفوع.',
- finish:'انْتَهَتِ اللُّعْبَة. أَحْسَنْتِ!'
+ not_in_list:'هذا لَيْسَ في القائِمَة.', list_done:'اكْتَمَلَتِ القائِمَة! الآنَ ادْفَعي.',
+ pay_more_change:'دَفَعْتِ أَكْثَر. البائِعَةُ تُرْجِعُ لَكِ الباقي.',
+ reward:'انْظُري ماذا اشْتَرَيْتِ اليَوْم!', finish:'انْتَهَتِ اللُّعْبَة. أَحْسَنْتِ!'
 };
 ITEMS.forEach(it=>PHRASES['item_'+it.k]=it.name);
 AMOUNTS.forEach(n=>PHRASES['amt_'+n]=amountText(n));
+const amt=n=>'amt_'+n;
+const AR=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
 
 /* =========================================================
-   2) VOICE — plays a recorded file when one exists,
-   otherwise uses the device's Arabic voice.
+   2) SETTINGS (teacher) — stored on this device only
    ========================================================= */
-let recorded=new Set();          // keys listed in audio/manifest.json
-let arVoice=null, voiceToken=0, lastSay=[];
-function pickVoice(){
-  if(!('speechSynthesis' in window)) return;
-  const vs=speechSynthesis.getVoices().filter(v=>/^ar/i.test(v.lang));
-  arVoice=vs.find(v=>/SA/i.test(v.lang))||vs[0]||null;
-}
+const DEFAULTS={input:'both',money:'small',hints:2,rounds:5};
+let S=Object.assign({},DEFAULTS,store('ms_settings')||{});
+function saveSettings(){store('ms_settings',S)}
+function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||'null');localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}}
+const moneySet=()=>S.money==='all'?[1,2,5,10,50,100]:[1,2,5,10];
+
+/* =========================================================
+   3) VOICE — recorded clip if present, else device voice
+   ========================================================= */
+let recorded=new Set(), arVoice=null, voiceToken=0, lastSay=[];
+function pickVoice(){ if(!('speechSynthesis' in window)) return; const vs=speechSynthesis.getVoices().filter(v=>/^ar/i.test(v.lang)); arVoice=vs.find(v=>/SA/i.test(v.lang))||vs[0]||null; }
 if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}
 fetch('audio/manifest.json').then(r=>r.ok?r.json():[]).then(a=>{recorded=new Set(a)}).catch(()=>{});
-
-function playFile(key,tok){
-  return new Promise(res=>{
-    const a=new Audio('audio/'+key+'.mp3');
-    a.onended=res; a.onerror=()=>{recorded.delete(key);ttsSpeak(PHRASES[key],tok).then(res)};
-    a.play().catch(()=>res());
-  });
-}
-function ttsSpeak(text,tok){
-  return new Promise(res=>{
-    if(tok!==voiceToken||!('speechSynthesis' in window)) return res();
-    const u=new SpeechSynthesisUtterance(text);
-    u.lang=arVoice?arVoice.lang:'ar-SA'; if(arVoice) u.voice=arVoice;
-    u.rate=0.85;
-    let done=false;const fin=()=>{if(!done){done=true;res()}};
-    u.onend=fin;u.onerror=fin;
-    setTimeout(fin, 1500+text.length*160);   // safety: some browsers never fire onend
-    speechSynthesis.speak(u);
-  });
-}
+function playFile(key,tok){ return new Promise(res=>{ const a=new Audio('audio/'+key+'.mp3'); a.onended=res; a.onerror=()=>{recorded.delete(key);ttsSpeak(PHRASES[key],tok).then(res)}; a.play().catch(()=>res()); }); }
+function ttsSpeak(text,tok){ return new Promise(res=>{ if(tok!==voiceToken||!('speechSynthesis' in window)) return res(); const u=new SpeechSynthesisUtterance(text); u.lang=arVoice?arVoice.lang:'ar-SA'; if(arVoice) u.voice=arVoice; u.rate=0.85; let done=false;const fin=()=>{if(!done){done=true;res()}}; u.onend=fin;u.onerror=fin; setTimeout(fin,1500+text.length*160); speechSynthesis.speak(u); }); }
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 async function say(keys,remember=true){
-  keys=keys.filter(Boolean);
-  if(remember) lastSay=keys;
-  const tok=++voiceToken;
-  if('speechSynthesis' in window) speechSynthesis.cancel();
-  // Group consecutive non-recorded keys into one smooth TTS sentence
-  let buf=[];
-  const flush=async()=>{ if(buf.length){const t=buf.map(k=>PHRASES[k]).join('، ');buf=[];await ttsSpeak(t,tok);} };
-  for(const k of keys){
-    if(tok!==voiceToken) return;
-    if(recorded.has(k)){ await flush(); if(tok!==voiceToken) return; await playFile(k,tok); await wait(120); }
-    else buf.push(k);
-  }
+  keys=keys.filter(Boolean); if(remember) lastSay=keys;
+  const tok=++voiceToken; if('speechSynthesis' in window) speechSynthesis.cancel();
+  let buf=[]; const flush=async()=>{ if(buf.length){const t=buf.map(k=>PHRASES[k]).join('، ');buf=[];await ttsSpeak(t,tok);} };
+  for(const k of keys){ if(tok!==voiceToken) return; if(recorded.has(k)){ await flush(); if(tok!==voiceToken) return; await playFile(k,tok); await wait(100); } else buf.push(k); }
   await flush();
 }
-const amt=n=>'amt_'+n;
 
 /* =========================================================
-   3) DRAWING MONEY
+   4) DRAWING — money, icons, the shop scene
    ========================================================= */
-function money(v,small){
-  const el=document.createElement('span');
+function money(v,size){
+  const el=document.createElement('span'); el.dataset.v=v;
   const coin=v<=2;
-  el.className='money '+(coin?'coin c':'note n')+v+(small?' small':'');
-  el.innerHTML='<span class="v">'+v+'</span><span class="u">'+'ريال'+'</span>';
-  el.setAttribute('aria-label',amountText(v).replace(/[ً-ْ]/g,''));
+  el.className='money '+(coin?'coin c':'note n')+v+(size?' '+size:'');
+  el.innerHTML=coin?`<span class="ar">${AR(v)}</span><span class="en">${v}</span>`:`<span class="orn"></span><span class="ar">${AR(v)}</span><span class="en">${v}</span><span class="u">ريال</span>`;
+  el.setAttribute('role','img'); el.setAttribute('aria-label',amountText(v).replace(/[ً-ْ]/g,''));
   return el;
 }
-function breakDown(n){const out=[];for(const d of [100,50,10,5,2,1]){while(n>=d){out.push(d);n-=d}}return out;}
-
-/* =========================================================
-   4) SCREENS & GAMES
-   ========================================================= */
-const $stage=document.getElementById('stage');
-const ROUNDS=5;
+function breakDown(n,set){ set=(set||[100,50,10,5,2,1]).slice().sort((a,b)=>b-a); const out=[]; for(const d of set){while(n>=d){out.push(d);n-=d}} return out; }
+const icon=k=>`<svg class="ico" aria-hidden="true"><use href="#ic-${k}"/></svg>`;
+function h(html){const d=document.createElement('div');d.innerHTML=html.trim();return d.firstElementChild;}
 const rand=a=>a[Math.floor(Math.random()*a.length)];
 const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
 const praise=()=>rand(['good1','good2','good3']);
-function h(html){const d=document.createElement('div');d.innerHTML=html.trim();return d.firstElementChild;}
-function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||'null');localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}}
+const strip=s=>s.replace(/[ً-ْ]/g,'');
 
-const GAMES=[
- {id:1,title:'تعرّفي على النقود',desc:'اسمعي واضغطي على النقود',key:'g1',run:game1},
- {id:2,title:'كوّني المبلغ',desc:'ادفعي السعر بالضبط',key:'g2',run:game2},
- {id:3,title:'هل يكفي المبلغ؟',desc:'معكِ نقود، هل تكفي للشراء؟',key:'g3',run:game3},
- {id:4,title:'كم الباقي؟',desc:'البائع يرجع لكِ الباقي',key:'g4',run:game4}
-];
-let state={game:null,round:0};
+function sceneSVG(){ return `
+<svg viewBox="0 0 800 450" preserveAspectRatio="none" aria-hidden="true">
+  <defs><linearGradient id="wallg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--wall)"/><stop offset="1" stop-color="var(--wall2)"/></linearGradient></defs>
+  <rect width="800" height="450" fill="url(#wallg)"/>
+  <rect y="428" width="800" height="22" fill="var(--floor)"/>
+  <!-- shelf -->
+  <rect x="36" y="100" width="8" height="150" fill="var(--shelf)"/><rect x="300" y="100" width="8" height="150" fill="var(--shelf)"/>
+  <rect x="36" y="150" width="272" height="10" rx="2" fill="var(--shelf)"/><rect x="36" y="238" width="272" height="10" rx="2" fill="var(--shelf)"/>
+  <!-- cashier (behind counter) -->
+  <g class="cashier">
+    <path d="M660 290 L668 240 Q700 226 732 240 L740 290 Z" fill="#5B8C6E"/>
+    <path class="out" d="M666 250 Q630 272 612 292" stroke="#5B8C6E" stroke-width="14" fill="none" stroke-linecap="round"/><circle class="out" cx="608" cy="293" r="8" fill="#E8BFA0"/>
+    <path d="M664 198 a36 36 0 1 1 72 0 L744 247 Q700 254 656 247 Z" fill="#2E2E38"/>
+    <circle cx="700" cy="200" r="24" fill="#E8BFA0"/>
+    <circle cx="691" cy="197" r="2.6" fill="#2B2B2B"/><circle cx="709" cy="197" r="2.6" fill="#2B2B2B"/>
+    <path class="cmouth" d="M692 210 Q700 216 708 210" stroke="#A3473C" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  </g>
+  <!-- counter -->
+  <rect x="500" y="292" width="300" height="158" fill="var(--wood)"/>
+  <rect x="488" y="280" width="324" height="16" rx="4" fill="var(--wood2)"/>
+  <!-- girl -->
+  <g class="girl">
+    <path d="M383 440 L395 252 Q420 236 445 252 L457 440 Z" fill="#3F6E9E"/>
+    <path d="M396 258 Q372 300 388 345" stroke="#3F6E9E" stroke-width="16" fill="none" stroke-linecap="round"/><circle cx="388" cy="350" r="9" fill="#F2C9A7"/>
+    <path class="rest" d="M444 258 Q470 300 452 345" stroke="#3F6E9E" stroke-width="16" fill="none" stroke-linecap="round"/><circle class="rest" cx="452" cy="350" r="9" fill="#F2C9A7"/>
+    <path class="out" d="M444 258 Q482 268 506 292" stroke="#3F6E9E" stroke-width="16" fill="none" stroke-linecap="round"/><circle class="out" cx="510" cy="294" r="9" fill="#F2C9A7"/>
+    <path d="M378 200 a42 42 0 1 1 84 0 L472 258 Q420 266 368 258 Z" fill="#B85C5C"/>
+    <circle cx="420" cy="200" r="27" fill="#F2C9A7"/>
+    <circle cx="410" cy="196" r="3" fill="#2B2B2B"/><circle cx="430" cy="196" r="3" fill="#2B2B2B"/>
+    <path class="mouth" d="M411 211 Q420 218 429 211" stroke="#A3473C" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>`; }
 
-function header(title){
-  return '<div class="dots">'+[...Array(ROUNDS)].map((_,i)=>'<i class="'+(i<state.round?'on':'')+'"></i>').join('')+'</div>'+
-         (title?'<div class="sub">'+title+'</div>':'');
+function buildScene(opts={}){
+  const root=h('<div class="scene"></div>');
+  root.innerHTML=sceneSVG();
+  const svg=root.querySelector('svg');
+  const girl=svg.querySelector('.girl'), cashier=svg.querySelector('.cashier');
+  const shelf=h('<div class="ov shelf"></div>');
+  const citem=h('<div class="ov citem"></div>');
+  const tagov=h('<div class="ov tagov"></div>');
+  const tray=h('<div class="ov trayov" aria-label="الطاولة"></div>');
+  const change=h('<div class="ov changeov"></div>');
+  const bubble=h('<div class="ov bubble"></div>');
+  root.append(shelf,citem,tagov,tray,change,bubble);
+  const sc={root,svg,girl,cashier,shelf,citem,tagov,tray,change,bubble,trayVals:[],shelfBtns:{}};
+  sc.setShelf=(items,onPick)=>{ shelf.innerHTML=''; sc.shelfBtns={}; items.forEach(it=>{ const slot=h('<div class="slot"></div>'); const b=h(`<button class="item" aria-label="${it.plain}">${icon(it.k)}</button>`); if(onPick) b.onclick=()=>onPick(it,b); else b.disabled=true; slot.append(b); shelf.append(slot); sc.shelfBtns[it.k]=b; }); };
+  sc.putOnCounter=async(it,fromBtn)=>{ if(fromBtn){ const g=h(icon(it.k)); g.style.width=fromBtn.offsetWidth+'px'; g.style.height=fromBtn.offsetHeight+'px'; fromBtn.classList.add('gone'); await fly(g,fromBtn.getBoundingClientRect(),citem.getBoundingClientRect()); } citem.innerHTML=icon(it.k); citem.classList.remove('pop'); void citem.offsetWidth; citem.classList.add('pop'); };
+  sc.clearCounter=()=>{citem.innerHTML=''};
+  sc.setTag=(p,label)=>{ tagov.innerHTML=p==null?'':`<span class="tag">${label?'<small>'+label+'</small>':''}${p}<small>ريال</small></span>`; };
+  sc.pulseTag=()=>{ const t=tagov.querySelector('.tag'); if(t){t.classList.remove('pulse');void t.offsetWidth;t.classList.add('pulse');} };
+  sc.addTray=(v,onRemove)=>{ const m=money(v,'sm'); if(onRemove){ m.onclick=()=>onRemove(v,m); m.setAttribute('aria-label','إرجاع '+v); } tray.append(m); sc.trayVals.push(v); m.classList.add('pop'); return m; };
+  sc.removeTray=(m)=>{ const v=+m.dataset.v; const i=sc.trayVals.indexOf(v); if(i>-1) sc.trayVals.splice(i,1); m.remove(); };
+  sc.trayTotal=()=>sc.trayVals.reduce((a,b)=>a+b,0);
+  sc.clearTray=()=>{tray.innerHTML='';sc.trayVals=[]};
+  sc.addChange=(v)=>{ const m=money(v,'sm'); m.classList.add('pop'); change.append(m); return m; };
+  sc.clearChange=()=>{change.innerHTML=''};
+  sc.girlArm=(out)=>girl.classList.toggle('arm-out',!!out);
+  sc.cashierArm=(out)=>cashier.classList.toggle('arm-out',!!out);
+  sc.happy=(on)=>{girl.classList.toggle('happy',!!on);cashier.classList.toggle('happy',!!on)};
+  sc.speak=(text)=>{ bubble.textContent=text; bubble.classList.toggle('show',!!text); };
+  return sc;
 }
+function fly(node,from,to){ return new Promise(res=>{ node.classList.add('dragging'); node.style.transform='none'; node.style.left=from.left+'px'; node.style.top=from.top+'px'; document.body.append(node); const w=node.offsetWidth,hh=node.offsetHeight; requestAnimationFrame(()=>requestAnimationFrame(()=>{ node.style.transition='left .65s cubic-bezier(.4,0,.2,1),top .65s cubic-bezier(.4,0,.2,1)'; node.style.left=(to.left+to.width/2-w/2)+'px'; node.style.top=(to.top+to.height/2-hh/2)+'px'; })); setTimeout(()=>{node.remove();res()},720); }); }
+function inRect(x,y,r){return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom}
+
+/* Drag-or-tap for wallet money. zone() returns the drop target element. */
+function enableDrag(el,{onTap,onDrop,zone}){
+  el.addEventListener('pointerdown',e=>{
+    if(el.disabled) return; e.preventDefault();
+    const r=el.getBoundingClientRect(), sx=e.clientX, sy=e.clientY, ox=sx-r.left, oy=sy-r.top; let moved=false, ghost=null;
+    const move=ev=>{ if(!moved && Math.hypot(ev.clientX-sx,ev.clientY-sy)>8){ if(S.input==='tap') return; moved=true; ghost=el.cloneNode(true); ghost.classList.add('dragging'); ghost.style.width=r.width+'px'; ghost.style.height=r.height+'px'; document.body.append(ghost); el.classList.add('lifted'); }
+      if(ghost){ ghost.style.left=(ev.clientX-ox)+'px'; ghost.style.top=(ev.clientY-oy)+'px'; const z=zone(); if(z) z.classList.toggle('over',inRect(ev.clientX,ev.clientY,z.getBoundingClientRect())); } };
+    const up=ev=>{ el.removeEventListener('pointermove',move); el.removeEventListener('pointerup',up); el.removeEventListener('pointercancel',up);
+      const z=zone(); if(z) z.classList.remove('over'); el.classList.remove('lifted');
+      if(!moved){ onTap&&onTap(); return; }
+      if(z&&inRect(ev.clientX,ev.clientY,z.getBoundingClientRect())){ ghost.remove(); onDrop&&onDrop(); }
+      else { ghost.style.transition='left .25s,top .25s,opacity .25s'; ghost.style.left=r.left+'px'; ghost.style.top=r.top+'px'; ghost.style.opacity='0'; setTimeout(()=>ghost.remove(),260); } };
+    el.setPointerCapture(e.pointerId); el.addEventListener('pointermove',move); el.addEventListener('pointerup',up); el.addEventListener('pointercancel',up);
+  });
+}
+
+/* =========================================================
+   5) APP STATE, MENU, LEVEL FLOW
+   ========================================================= */
+const $stage=document.getElementById('stage');
+let state={level:null,round:0,score:0,bought:[]}, runId=0;
+const alive=id=>id===runId;
+
+const LEVELS=[
+ {id:1,key:'l1',title:'جدار النقود',desc:'تعرّفي على كل ورقة وقطعة',art:()=>{const d=h('<div class="art"></div>');d.append(money(5,'sm'));return d;},demo:demoWall,round:roundFind},
+ {id:2,key:'l2',title:'ادفعي السعر',desc:'اسحبي النقود إلى الطاولة',art:()=>h(`<div class="art">${icon('juice')}</div>`),demo:demoPay,round:roundPay},
+ {id:3,key:'l3',title:'هل يكفي المبلغ؟',desc:'قارني بين نقودك والسعر',art:()=>h(`<div class="art">${icon('charger')}</div>`),demo:demoEnough,round:roundEnough},
+ {id:4,key:'l4',title:'كم الباقي؟',desc:'البائعة تعدّ لكِ الباقي',art:()=>{const d=h('<div class="art"></div>');d.append(money(10,'sm'));return d;},demo:demoChange,round:roundChange},
+ {id:5,key:'l5',title:'رحلة التسوق',desc:'قائمة، سلة، دفع، وباقي',art:()=>h(`<div class="art">${icon('notebook')}${icon('water')}</div>`),demo:demoTrip,round:roundTrip,rounds:3}
+];
 
 function showStart(){
-  $stage.innerHTML='';
-  $stage.append(h('<div class="prompt">أهلاً بكِ في متجر النقود</div>'));
-  $stage.append(h('<div class="sub">اضغطي على الزر لتسمعي الصوت وتبدئي</div>'));
-  const b=h('<button class="start" id="go">ابدئي</button>');
-  b.onclick=()=>{say(['welcome']);showMenu();};
-  $stage.append(b);
+  runId++; $stage.className='stage'; $stage.innerHTML='';
+  $stage.append(h('<div class="prompt">أهلاً بكِ في متجر النقود</div>'), h('<div class="sub">اضغطي على الزر لتسمعي الصوت وتبدئي</div>'));
+  const b=h('<button class="start" id="go">ابدئي</button>'); b.onclick=()=>{say(['welcome']);showMenu();}; $stage.append(b);
 }
-
 function showMenu(){
-  state={game:null,round:0};
-  $stage.innerHTML='';
+  runId++; state={level:null,round:0,score:0,bought:[]}; $stage.className='stage'; $stage.innerHTML='';
   $stage.append(h('<div class="prompt">اختاري لعبة</div>'));
   const m=h('<div class="menu"></div>');
-  GAMES.forEach(g=>{
-    const best=store('stars'+g.id)||0;
-    const b=h('<button class="game" id="game'+g.id+'"><span class="num">'+g.id+'</span><span><b>'+g.title+'</b><span>'+g.desc+'</span><div class="stars" aria-label="النجوم">'+'★'.repeat(best)+'<span style="opacity:.25;color:inherit">'+'★'.repeat(ROUNDS-best)+'</span></div></span></button>');
-    b.onclick=()=>{state={game:g,round:0,score:0};g.run(true);};
-    m.append(b);
+  LEVELS.forEach(L=>{
+    const best=store('stars'+L.id)||0, total=L.rounds||S.rounds;
+    const b=h(`<button class="lvl" id="lvl${L.id}"><span></span><span><b>${L.title}</b><span class="d">${L.desc}</span><div class="stars" aria-label="النجوم">${'★'.repeat(Math.min(best,total))}<em>${'★'.repeat(Math.max(0,total-best))}</em></div></span></button>`);
+    b.firstElementChild.replaceWith(L.art());
+    b.onclick=()=>startLevel(L); m.append(b);
   });
   $stage.append(m);
 }
+function startLevel(L){ state={level:L,round:0,score:0,bought:[]}; showDemo(L); }
+function header(L){ const n=L.rounds||S.rounds; return `<div class="lvlhead"><div class="dots">${[...Array(n)].map((_,i)=>'<i class="'+(i<state.round?'on':'')+'"></i>').join('')}</div><div class="sub">${L.title}</div></div>`; }
 
-function nextRound(gotItFirstTry){
-  if(gotItFirstTry) state.score++;
-  state.round++;
-  if(state.round>=ROUNDS) return showEnd();
-  setTimeout(()=>state.game.run(false),1600);
+async function showDemo(L){
+  const id=++runId; $stage.className='stage'; $stage.innerHTML=header(L);
+  const cap=h('<div class="caption"></div>'); const body=h('<div style="width:100%;display:flex;flex-direction:column;gap:14px;align-items:center"></div>');
+  const actions=h('<div class="actions"></div>'); $stage.append(body,cap,actions);
+  const btnTry=h('<button class="big primary"><svg><use href="#ic-hand"/></svg>جرّبي</button>'); btnTry.onclick=()=>{runId++;state.round=0;L.round(true);};
+  const btnAgain=h('<button class="big ghost"><svg><use href="#ic-play"/></svg>شاهدي مرة أخرى</button>'); btnAgain.onclick=()=>showDemo(L);
+  actions.append(btnTry,btnAgain); btnTry.hidden=true; btnAgain.hidden=true;
+  const narrate=async(keys,text)=>{ if(!alive(id)) return; cap.textContent=text||''; await say(keys); };
+  await narrate([L.key,'watch'],'شاهدي نورة أولاً');
+  if(!alive(id)) return;
+  await L.demo(body,narrate,id);
+  if(!alive(id)) return;
+  await narrate(['try'],'الآن دوركِ');
+  btnTry.hidden=false; btnAgain.hidden=false; btnTry.classList.add('glow');
 }
+function nextRound(firstTry){ if(firstTry) state.score++; state.round++; const n=state.level.rounds||S.rounds; if(state.round>=n) return showEnd(); const id=++runId; setTimeout(()=>{ if(alive(id)) state.level.round(false); },1700); }
 function showEnd(){
-  const g=state.game, s=Math.max(1,state.score);
-  const best=store('stars'+g.id)||0; if(s>best) store('stars'+g.id,s);
-  setTimeout(()=>{
-    $stage.innerHTML='';
-    $stage.append(h('<div class="celebrate pop">'+'★'.repeat(s)+'</div>'));
-    $stage.append(h('<div class="prompt">انتهت اللعبة. أحسنتِ!</div>'));
-    const a=h('<div class="actions"></div>');
-    const again=h('<button class="big primary">العبي مرة أخرى</button>'); again.onclick=()=>{state={game:g,round:0,score:0};g.run(true)};
-    const menu=h('<button class="big ghost">اختاري لعبة أخرى</button>'); menu.onclick=showMenu;
-    a.append(again,menu); $stage.append(a);
-    say(['finish']);
-  },1400);
+  const L=state.level, n=L.rounds||S.rounds, s=Math.max(1,state.score); const best=store('stars'+L.id)||0; if(s>best) store('stars'+L.id,s);
+  const id=++runId;
+  setTimeout(()=>{ if(!alive(id)) return; $stage.innerHTML='';
+    $stage.append(h('<div class="celebrate pop">'+'★'.repeat(s)+'</div>'), h('<div class="prompt">انتهت اللعبة. أحسنتِ!</div>'));
+    if(state.bought.length){ const sh=h('<div class="rewardshelf" aria-label="ما اشتريتِه"></div>'); state.bought.forEach((k,i)=>{const g=h(icon(k)); g.style.animationDelay=(i*.15)+'s'; sh.append(g);}); $stage.append(h('<div class="sub">ماذا اشتريتِ اليوم؟</div>'),sh); }
+    const a=h('<div class="actions"></div>'); const again=h('<button class="big primary">العبي مرة أخرى</button>'); again.onclick=()=>{state={level:L,round:0,score:0,bought:[]};runId++;L.round(true)};
+    const menu=h('<button class="big ghost">اختاري لعبة أخرى</button>'); menu.onclick=showMenu; a.append(again,menu); $stage.append(a);
+    say(state.bought.length?['reward','finish']:['finish']);
+  },1300);
 }
-function feedback(el,text,kind){el.textContent=text;el.className='feedback '+kind;}
+function feedback(el,text,kind){el.textContent=text;el.className='feedback '+(kind||'');}
+function wallet(vals,{drag,onAdd,zone,label}={}){
+  const w=h(`<div class="wallet" aria-label="المحفظة">${label?'<span class="lbl">'+label+'</span>':''}</div>`);
+  vals.forEach(v=>{ const b=document.createElement('button'); b.append(money(v)); b.dataset.v=v; w.append(b);
+    if(drag){ enableDrag(b,{zone,onTap:()=>onAdd(v,b),onDrop:()=>onAdd(v,b)}); } else if(onAdd){ b.onclick=()=>onAdd(v,b); } else b.disabled=true; });
+  return w;
+}
+function walletWrap(sc){ const w=h('<div style="width:100%;display:flex;flex-direction:column;gap:14px;align-items:center"></div>'); w.append(sc.root); return w; }
 
-/* ---------- Game 1: recognise money ---------- */
-function game1(first){
-  const pool=state.round<2?[1,2,5,10]:[1,2,5,10,50,100];
-  const target=rand(pool);
-  const others=shuffle(pool.filter(v=>v!==target)).slice(0,2);
-  const opts=shuffle([target,...others]);
-  let wrong=0;
-  $stage.innerHTML=header('تعرّفي على النقود');
+/* =========================================================
+   6) LEVEL 1 — MONEY WALL (learn, then find)
+   ========================================================= */
+async function demoWall(body,narrate,id){
+  const set=moneySet();
+  const wall=h('<div class="wall"></div>'); const view=h('<div class="bigview"></div>'); const eq=h('<div class="eqrow"></div>');
+  body.append(view,wall,eq);
+  let sel=null;
+  const show=async(v,b)=>{ if(sel) sel.classList.remove('sel'); sel=b; b.classList.add('sel'); view.innerHTML=''; const m=money(v,'xl'); m.classList.add('pop'); view.append(m); view.append(h('<div class="sub">'+strip(PHRASES['m_'+v])+'</div>')); await say(['m_'+v],false); };
+  set.forEach(v=>{ const b=document.createElement('button'); b.append(money(v)); b.onclick=()=>show(v,b); wall.append(b); });
+  await narrate(['wall_intro'],'اضغطي على أي نقود لتسمعي اسمها');
+  for(const v of set){ if(!alive(id)) return; await show(v,wall.children[set.indexOf(v)]); await wait(250); }
+  // equivalence 5 = 1+1+1+1+1
+  if(!alive(id)) return;
+  eq.innerHTML=''; const g=h('<div class="group"></div>'); for(let i=0;i<5;i++){const c=money(1,'sm');c.style.animationDelay=(i*.15)+'s';c.classList.add('pop');g.append(c);}
+  eq.append(g,h('<span class="eq">=</span>')); const n5=money(5,'md'); eq.append(n5);
+  await narrate(['eq_5'],'٥ ريالات معدنية = ورقة الخمسة');
+  if(!alive(id)) return; await wait(400);
+  eq.innerHTML=''; const g2=h('<div class="group"></div>'); g2.append(money(5,'sm'),money(5,'sm')); eq.append(g2,h('<span class="eq">=</span>'),money(10,'md'));
+  await narrate(['eq_10'],'ورقتان من الخمسة = ورقة العشرة');
+  await wait(300);
+}
+function roundFind(first){
+  const L=state.level, set=moneySet(); const pool=state.round<2?set.filter(v=>v<=10):set;
+  const target=rand(pool), others=shuffle(set.filter(v=>v!==target)).slice(0,2), opts=shuffle([target,...others]); let wrong=0;
+  $stage.innerHTML=header(L);
   $stage.append(h('<div class="prompt">أين '+target+' ريال؟</div>'));
-  const box=h('<div class="opts"></div>');
-  const fb=h('<div class="feedback"></div>');
-  opts.forEach(v=>{
-    const b=document.createElement('button');b.className='opt';b.append(money(v));
-    b.onclick=()=>{
-      if(b.classList.contains('dim')) return;
-      if(v===target){
-        b.classList.add('right','pop'); box.querySelectorAll('.opt').forEach(o=>o.disabled=true);
-        feedback(fb,'أحسنتِ!','good'); say([praise(),amt(v)],false); nextRound(wrong===0);
-      }else{
-        wrong++; b.classList.add('dim');
-        feedback(fb,'هذه '+v+' — حاولي مرة أخرى','soft');
-        say([amt(v),'retry'],false);
-        if(wrong>=2) [...box.children].find(o=>!o.classList.contains('dim')).classList.add('glow');
-      }
-    };
-    box.append(b);
-  });
+  const box=h('<div class="opts"></div>'), fb=h('<div class="feedback"></div>');
+  opts.forEach(v=>{ const b=document.createElement('button'); b.className='opt'; b.append(money(v,'lg')); b.onclick=()=>{ if(b.classList.contains('dim')) return;
+    if(v===target){ b.classList.add('right','pop'); box.querySelectorAll('.opt').forEach(o=>o.disabled=true); feedback(fb,'أحسنتِ!','good'); say([praise(),'m_'+v],false); nextRound(wrong===0); }
+    else { wrong++; b.classList.add('dim'); feedback(fb,'هذه '+v+'. حاولي مرة أخرى','soft'); say(['m_'+v,'retry'],false); if(wrong>=S.hints) [...box.children].find(o=>!o.classList.contains('dim')).classList.add('glow'); } };
+    box.append(b); });
   $stage.append(box,fb);
-  say(first?['g1','i1','w_where',amt(target)]:['w_where',amt(target)]);
+  say(first?['i1','w_where',amt(target)]:['w_where',amt(target)]);
 }
 
-/* ---------- Game 2: make the amount ---------- */
-function game2(first){
-  const item=rand(ITEMS);
-  const price=3+Math.floor(Math.random()*(state.round<2?8:18)); // 3–10 first, then up to 20
-  let tray=[],wrong=0;
-  $stage.innerHTML=header('كوّني المبلغ');
-  $stage.append(h('<div class="item"><span class="pic" aria-hidden="true">'+item.pic+'</span><span class="iname">'+item.name.replace(/[ً-ْ]/g,'')+'</span><span class="tag"><span class="lbl">السعر</span>'+price+'<small>ريال</small></span></div>'));
-  const meter=h('<div class="meter"><i></i></div>');
-  const total=h('<div class="total"><span class="sub">في السلة:</span><span id="tot">0</span><span class="sub">ريال</span></div>');
-  const trayEl=h('<div class="tray" aria-label="السلة"></div>');
-  const wallet=h('<div class="wallet"></div>');
-  const fb=h('<div class="feedback"></div>');
-  const actions=h('<div class="actions"></div>');
-  const done=h('<button class="big primary">ادفعي</button>');
-  actions.append(done);
-  function render(){
-    const t=tray.reduce((a,b)=>a+b,0);
-    total.querySelector('#tot').textContent=t;
-    meter.querySelector('i').style.width=Math.min(100,t/price*100)+'%';
-    meter.className='meter'+(t>price?' over':t===price?' done':'');
-    trayEl.innerHTML='';
-    if(!tray.length) trayEl.append(h('<span class="empty">السلة فارغة — اضغطي على النقود بالأسفل</span>'));
-    tray.forEach((v,i)=>{const b=document.createElement('button');b.append(money(v,true));b.setAttribute('aria-label','إرجاع');
-      b.onclick=()=>{tray.splice(i,1);render();const t2=tray.reduce((a,c)=>a+c,0);say(t2?[amt(t2)]:[],false);};trayEl.append(b);});
-    return t;
-  }
-  [1,2,5,10].forEach(v=>{const b=document.createElement('button');b.append(money(v));
-    b.onclick=()=>{if(tray.reduce((a,c)=>a+c,0)+v>30){say(['more'],false);return;}tray.push(v);const t=render();feedback(fb,'','');say([amt(t)],false);};
-    wallet.append(b);});
-  done.onclick=()=>{
-    const t=tray.reduce((a,b)=>a+b,0);
-    if(t===price){done.disabled=true;wallet.querySelectorAll('button').forEach(b=>b.disabled=true);
-      feedback(fb,'أحسنتِ! دفعتِ '+price+' ريال بالضبط','good');say([praise()],false);nextRound(wrong===0);}
-    else if(t<price){wrong++;feedback(fb,'المبلغ أقل من السعر. أضيفي نقوداً','soft');say(['less'],false);}
-    else {wrong++;feedback(fb,'المبلغ أكثر من السعر. اضغطي على نقود في السلة لإرجاعها','soft');say(['more'],false);}
-  };
-  $stage.append(meter,total,trayEl,wallet,fb,actions);
-  render();
-  say(first?['g2','i2','item_'+item.k,'w_price',amt(price)]:['item_'+item.k,'w_price',amt(price)]);
+/* =========================================================
+   7) LEVEL 2 — PAY THE PRICE
+   ========================================================= */
+function pickItems(n){ return shuffle(ITEMS).slice(0,n); }
+async function demoPay(body,narrate,id){
+  const items=pickItems(4), item=items[0], price=7, sc=buildScene(); body.append(sc.root);
+  sc.setShelf(items);
+  const w=wallet([1,2,5,10]); body.append(w);
+  await narrate(['d_intro'],'هذه نورة، ذهبت إلى المتجر'); if(!alive(id)) return;
+  sc.speak(item.plain);
+  await narrate(['d_pick','item_'+item.k],'تختار نورة: '+item.plain); if(!alive(id)) return;
+  await sc.putOnCounter(item,sc.shelfBtns[item.k]); sc.speak('');
+  sc.setTag(price,'السعر'); sc.pulseTag();
+  await narrate(['d_look','w_price',amt(price)],'السعر '+price+' ريالات'); if(!alive(id)) return;
+  sc.girlArm(true); w.classList.add('hl');
+  await narrate(['d_wallet'],'تفتح محفظتها وتختار النقود'); if(!alive(id)) return;
+  for(const v of breakDown(price,[10,5,2,1])){ if(!alive(id)) return; const btn=w.querySelector(`button[data-v="${v}"]`); const g=money(v,'sm'); await fly(g,btn.getBoundingClientRect(),sc.tray.getBoundingClientRect()); sc.addTray(v); await narrate([amt(sc.trayTotal())],'في الطاولة: '+sc.trayTotal()); }
+  w.classList.remove('hl');
+  await narrate(['d_same'],'المبلغ مثل السعر تماماً'); if(!alive(id)) return;
+  sc.happy(true); sc.speak('شكراً لكِ!'); await narrate(['thanks'],'شكراً لكِ!');
+}
+function roundPay(first){
+  const L=state.level, item=rand(ITEMS), set=moneySet().filter(v=>v<=10);
+  const price=3+Math.floor(Math.random()*(state.round<2?8:18)); let wrong=0, hinted=false;
+  $stage.innerHTML=header(L);
+  const sc=buildScene(); sc.setShelf(pickItems(4)); sc.putOnCounter(item); sc.setTag(price,'السعر'); sc.girlArm(true);
+  const wrap=walletWrap(sc); const total=h('<div class="sub" style="font-weight:700;font-size:22px">في الطاولة: <span>0</span> ريال</div>');
+  const fb=h('<div class="feedback"></div>'); const pay=h('<button class="big primary">ادفعي</button>');
+  const clearGlow=()=>w.querySelectorAll('.money.glow').forEach(m=>m.classList.remove('glow'));
+  const update=()=>{ const t=sc.trayTotal(); total.querySelector('span').textContent=t; pay.classList.toggle('glow',t===price); };
+  const removeFromTray=(v,m)=>{ sc.removeTray(m); update(); clearGlow(); const t=sc.trayTotal(); say(t?[amt(t)]:[],false); };
+  const add=(v)=>{ if(sc.trayTotal()+v>price+20){ say(['more'],false); return; } sc.addTray(v,removeFromTray); update(); clearGlow(); feedback(fb,''); say([amt(sc.trayTotal())],false); };
+  const w=wallet(set,{drag:true,onAdd:add,zone:()=>sc.tray,label:'المحفظة'});
+  const hint=()=>{ clearGlow(); const t=sc.trayTotal(); if(t<price){ const need=price-t; const v=set.filter(x=>x<=need).sort((a,b)=>b-a)[0]||set[0]; const b=w.querySelector(`button[data-v="${v}"] .money`); b&&b.classList.add('glow'); } else if(t>price){ const over=t-price; const ms=[...sc.tray.querySelectorAll('.money')].sort((a,b)=>a.dataset.v-b.dataset.v); const m=ms.find(x=>+x.dataset.v>=over)||ms[ms.length-1]; m&&m.classList.add('glow'); } };
+  pay.onclick=()=>{ const t=sc.trayTotal();
+    if(t===price){ pay.disabled=true; w.querySelectorAll('button').forEach(b=>b.disabled=true); sc.happy(true); sc.speak('شكراً لكِ!'); feedback(fb,'أحسنتِ! دفعتِ '+price+' ريال بالضبط','good'); say([praise(),'thanks'],false); state.bought.push(item.k); nextRound(wrong===0); }
+    else if(t<price){ wrong++; feedback(fb,'المبلغ أقل من السعر. أضيفي نقوداً','soft'); say(['less'].concat(wrong>=S.hints?['hint_glow']:[]),false); if(wrong>=S.hints) hint(); }
+    else { wrong++; feedback(fb,'المبلغ أكثر من السعر. اضغطي على نقود في الطاولة لإرجاعها','soft'); say(['more'],false); if(wrong>=S.hints) hint(); } };
+  wrap.append(w,total,fb,h('<div class="actions"></div>')); wrap.lastElementChild.append(pay); $stage.append(wrap);
+  say((first?['tap_or_drag']:[]).concat(['item_'+item.k,'w_price',amt(price)]));
 }
 
-/* ---------- Game 3: is it enough? ---------- */
-function game3(first){
-  const item=rand(ITEMS);
-  const price=rand(AMOUNTS.filter(n=>n>=3&&n<=(state.round<2?15:30)));
-  const enough=Math.random()<0.5;
-  let have;
-  if(enough) have=rand(AMOUNTS.filter(n=>n>=price&&n<=price+10));
-  else have=rand(AMOUNTS.filter(n=>n<price&&n>=Math.max(1,price-8)));
-  let wrong=0;
-  $stage.innerHTML=header('هل يكفي المبلغ؟');
-  const pair=h('<div class="pair"></div>');
-  const p1=h('<div class="panel"><h3>معكِ</h3><div class="pile"></div><div class="total">'+have+' <span class="sub">ريال</span></div></div>');
-  breakDown(have).forEach(v=>p1.querySelector('.pile').append(money(v,true)));
-  const p2=h('<div class="panel"><h3>تريدين شراء</h3><div class="item"><span class="pic" aria-hidden="true">'+item.pic+'</span><span class="tag"><span class="lbl">السعر</span>'+price+'<small>ريال</small></span></div></div>');
-  pair.append(p1,p2);
-  $stage.append(pair,h('<div class="prompt">هل يكفي المبلغ؟</div>'));
-  const fb=h('<div class="feedback"></div>');
-  const a=h('<div class="actions"></div>');
+/* =========================================================
+   8) LEVEL 3 — IS IT ENOUGH?
+   ========================================================= */
+function meterEl(have,price){ const mx=Math.max(have,price)*1.15; const w=h(`<div class="meterwrap"><div class="meter ${have>=price?'done':'over'}"><i style="width:${have/mx*100}%"></i><span class="mark" data-l="السعر ${price}" style="left:${price/mx*100}%"></span></div><div class="sub">معكِ ${have} ريال</div></div>`); return w; }
+async function demoEnough(body,narrate,id){
+  const item=rand(ITEMS), price=12, have=15, sc=buildScene(); body.append(sc.root);
+  sc.setShelf(pickItems(4)); sc.putOnCounter(item); sc.setTag(price,'السعر');
+  const w=wallet(breakDown(have,[10,5,2,1]),{label:'معكِ'}); body.append(w);
+  await narrate(['d_intro'],'هذه نورة في المتجر'); if(!alive(id)) return;
+  w.classList.add('hl'); await narrate(['d_enough_1','w_withyou',amt(have)],'تعدّ نورة نقودها: '+have); if(!alive(id)) return;
+  w.classList.remove('hl'); sc.pulseTag(); await narrate(['d_enough_2','w_price',amt(price)],'السعر: '+price); if(!alive(id)) return;
+  const m=meterEl(have,price); body.append(m);
+  await narrate(['d_enough_yes'],'١٥ أكثر من ١٢، إذن يكفي'); if(!alive(id)) return;
+  sc.girlArm(true); sc.happy(true); sc.speak('يكفي!'); await wait(400);
+}
+function roundEnough(first){
+  const L=state.level, item=rand(ITEMS);
+  const price=rand(AMOUNTS.filter(n=>n>=3&&n<=(state.round<2?15:30))); const enough=Math.random()<0.5;
+  const have=enough?rand(AMOUNTS.filter(n=>n>=price&&n<=price+10)):rand(AMOUNTS.filter(n=>n<price&&n>=Math.max(1,price-8))); let wrong=0;
+  $stage.innerHTML=header(L);
+  const sc=buildScene(); sc.setShelf(pickItems(4)); sc.putOnCounter(item); sc.setTag(price,'السعر');
+  const wrap=walletWrap(sc); const w=wallet(breakDown(have,[10,5,2,1]),{label:'معكِ '+have+' ريال'});
+  const fb=h('<div class="feedback"></div>'), a=h('<div class="actions"></div>');
   const yes=h('<button class="big yes">نعم، يكفي</button>'), no=h('<button class="big no">لا، لا يكفي</button>');
-  const answer=ans=>{
-    if(ans===enough){yes.disabled=no.disabled=true;
-      feedback(fb,enough?'نعم، المبلغ يكفي':'لا، المبلغ لا يكفي','good');say([praise(),enough?'enough_yes':'enough_no'],false);nextRound(wrong===0);}
-    else{wrong++;feedback(fb,'انظري مرة أخرى: معكِ '+have+'، والسعر '+price,'soft');say(['retry','w_withyou',amt(have),'w_price',amt(price)],false);}
-  };
-  yes.onclick=()=>answer(true); no.onclick=()=>answer(false);
-  a.append(yes,no); $stage.append(fb,a);
-  say((first?['g3','i3']:[]).concat(['w_withyou',amt(have),'w_price',amt(price),'q_enough']));
+  const answer=ans=>{ if(ans===enough){ yes.disabled=no.disabled=true; wrap.insertBefore(meterEl(have,price),fb); if(enough){sc.happy(true);sc.girlArm(true);} feedback(fb,enough?'نعم، المبلغ يكفي':'لا، المبلغ لا يكفي','good'); say([praise(),enough?'enough_yes':'enough_no'],false); if(enough) state.bought.push(item.k); nextRound(wrong===0); }
+    else { wrong++; feedback(fb,'انظري مرة أخرى: معكِ '+have+'، والسعر '+price,'soft'); say(['retry','w_withyou',amt(have),'w_price',amt(price)],false); if(wrong>=S.hints){ (enough?yes:no).classList.add('glow'); wrap.insertBefore(meterEl(have,price),fb); } } };
+  yes.onclick=()=>answer(true); no.onclick=()=>answer(false); a.append(yes,no);
+  wrap.append(w,h('<div class="prompt">هل يكفي المبلغ؟</div>'),fb,a); $stage.append(wrap);
+  say(['w_withyou',amt(have),'w_price',amt(price),'q_enough']);
 }
 
-/* ---------- Game 4: change (counting up) ---------- */
-function makeChangeTask(){
-  const r=Math.random(), easy=state.round<2;
-  if(easy||r<0.34){const p=1+Math.floor(Math.random()*9);return{paid:10,price:p};}
-  if(r<0.67){const p=rand([20,25,30,35,40,45]);return{paid:50,price:p};}
-  const p=rand([30,40,50,60,70,80,90]);return{paid:100,price:p};
+/* =========================================================
+   9) LEVEL 4 — CHANGE (counting up)
+   ========================================================= */
+function makeChangeTask(){ const r=Math.random(), easy=state.round<2; if(easy||r<0.34){return{paid:10,price:1+Math.floor(Math.random()*9)};} if(r<0.67){return{paid:50,price:rand([20,25,30,35,40,45])};} return{paid:100,price:rand([30,40,50,60,70,80,90])}; }
+function countSteps(price,paid){ const s=[];let x=price; if(paid===10){while(x<paid){x+=1;s.push(x)}return s;} if(x%10===5){x+=5;s.push(x)} while(x<paid){x+=10;s.push(x)} return s; }
+async function countUp(sc,counter,price,paid,narrate){ // cashier counts change onto the counter
+  counter.innerHTML=''; sc.clearChange(); sc.cashierArm(true);
+  const steps=countSteps(price,paid); const chips=[price,...steps].map(n=>{const s=h('<span>'+n+'</span>');counter.append(s);return s;}); chips[0].classList.add('now');
+  await narrate(['count_intro','w_price',amt(price)],'نعدّ من السعر '+price); let prev=price;
+  for(let i=0;i<steps.length;i++){ chips[i].classList.remove('now'); chips[i+1].classList.add('now'); sc.addChange(steps[i]-prev); prev=steps[i]; await narrate([amt(steps[i])],String(steps[i])); await wait(150); }
+  const ch=paid-price; counter.append(h('<span class="now">الباقي '+ch+'</span>')); await narrate(['w_change',amt(ch)],'الباقي '+ch); sc.cashierArm(false);
 }
-function countSteps(price,paid){ // numbers said while counting up from price to paid
-  const s=[];let x=price;
-  if(paid===10){while(x<paid){x+=1;s.push(x)}return s;}
-  if(x%10===5){x+=5;s.push(x)}
-  while(x<paid){x+=10;s.push(x)}
-  return s;
+async function demoChange(body,narrate,id){
+  const item=rand(ITEMS), price=7, paid=10, sc=buildScene(); body.append(sc.root);
+  sc.setShelf(pickItems(4)); sc.putOnCounter(item); sc.setTag(price,'السعر');
+  const w=wallet([10],{label:'معكِ'}); body.append(w); const counter=h('<div class="count"></div>'); body.append(counter);
+  await narrate(['d_intro','w_price',amt(price)],'السعر '+price); if(!alive(id)) return;
+  await narrate(['d_change_1'],'ليس معها المبلغ بالضبط، تعطي ورقة أكبر'); if(!alive(id)) return;
+  sc.girlArm(true); const g=money(paid,'sm'); await fly(g,w.querySelector('button').getBoundingClientRect(),sc.tray.getBoundingClientRect()); sc.addTray(paid);
+  await narrate(['w_paid',amt(paid)],'دفعت '+paid); if(!alive(id)) return;
+  await narrate(['d_change_2'],'البائعة تعدّ من السعر حتى المبلغ المدفوع'); if(!alive(id)) return;
+  await countUp(sc,counter,price,paid,narrate); sc.happy(true);
 }
-function game4(first){
-  const item=rand(ITEMS);
-  const {paid,price}=makeChangeTask();
-  const change=paid-price;
-  const cands=AMOUNTS.filter(n=>n!==change&&Math.abs(n-change)<=10&&n<paid);
-  const opts=shuffle([change,...shuffle(cands).slice(0,2)]);
-  let wrong=0;
-  $stage.innerHTML=header('كم الباقي؟');
-  const pair=h('<div class="pair"></div>');
-  pair.append(h('<div class="panel"><h3>السعر</h3><div class="item"><span class="pic" aria-hidden="true">'+item.pic+'</span><span class="tag">'+price+'<small>ريال</small></span></div></div>'));
-  const pp=h('<div class="panel"><h3>أعطيتِ البائع</h3><div class="pile"></div></div>'); pp.querySelector('.pile').append(money(paid)); pair.append(pp);
-  $stage.append(pair,h('<div class="prompt">كم يرجع لكِ البائع؟</div>'));
-  const counter=h('<div class="count" aria-live="polite"></div>');
-  const box=h('<div class="opts"></div>');
-  const fb=h('<div class="feedback"></div>');
-  opts.forEach(v=>{
-    const b=h('<button class="ansnum">'+v+'<small>ريال</small></button>');
-    b.onclick=()=>{
-      if(b.classList.contains('dim'))return;
-      if(v===change){b.classList.add('right','pop');box.querySelectorAll('button').forEach(o=>o.disabled=true);
-        feedback(fb,'أحسنتِ! الباقي '+change+' ريال','good');say([praise(),'w_change',amt(change)],false);nextRound(wrong===0);}
-      else{wrong++;b.classList.add('dim');feedback(fb,'حاولي مرة أخرى، أو اضغطي «عُدّي معي»','soft');say(['retry'],false);
-        if(wrong>=2) countUp();}
-    };
-    box.append(b);
-  });
-  const a=h('<div class="actions"></div>');
+function roundChange(first){
+  const L=state.level, item=rand(ITEMS), {paid,price}=makeChangeTask(), change=paid-price; let wrong=0, counting=false;
+  const cands=AMOUNTS.filter(n=>n!==change&&Math.abs(n-change)<=10&&n<paid); const opts=shuffle([change,...shuffle(cands).slice(0,2)]);
+  $stage.innerHTML=header(L);
+  const sc=buildScene(); sc.setShelf(pickItems(4)); sc.putOnCounter(item); sc.setTag(price,'السعر'); sc.girlArm(true); sc.addTray(paid);
+  const wrap=walletWrap(sc); const counter=h('<div class="count" aria-live="polite"></div>'); const box=h('<div class="opts"></div>'); const fb=h('<div class="feedback"></div>'); const a=h('<div class="actions"></div>');
+  const narrate=async(keys,text)=>{await say(keys,false)};
   const hint=h('<button class="big ghost">عُدّي معي</button>');
-  let counting=false;
-  async function countUp(){
-    if(counting)return;counting=true;
-    counter.innerHTML='';
-    const steps=countSteps(price,paid);
-    const chips=[price,...steps].map(n=>{const s=h('<span>'+n+'</span>');counter.append(s);return s;});
-    chips[0].classList.add('now');
-    await say(['count_intro','w_price',amt(price)],false);
-    for(let i=0;i<steps.length;i++){
-      chips[i].classList.remove('now');chips[i+1].classList.add('now');
-      await say([amt(steps[i])],false);
-      await wait(250);
-    }
-    counter.append(h('<span class="now">الباقي '+change+'</span>'));
-    await say(['w_change',amt(change)],false);
-    counting=false;
-  }
-  hint.onclick=countUp;
+  const doCount=async()=>{ if(counting) return; counting=true; await countUp(sc,counter,price,paid,narrate); counting=false; };
+  hint.onclick=doCount;
+  opts.forEach(v=>{ const b=h(`<button class="opt"><span class="pile"></span><span class="num">${v}<small>ريال</small></span></button>`); breakDown(v,[50,10,5,2,1]).slice(0,8).forEach(x=>b.querySelector('.pile').append(money(x,'sm')));
+    b.onclick=()=>{ if(b.classList.contains('dim')) return;
+      if(v===change){ b.classList.add('right','pop'); box.querySelectorAll('button').forEach(o=>o.disabled=true); feedback(fb,'أحسنتِ! الباقي '+change+' ريال','good'); sc.happy(true); if(!counter.children.length){ sc.clearChange(); breakDown(change,[50,10,5,2,1]).forEach(x=>sc.addChange(x)); sc.cashierArm(true);} say([praise(),'w_change',amt(change)],false); state.bought.push(item.k); nextRound(wrong===0); }
+      else { wrong++; b.classList.add('dim'); feedback(fb,'حاولي مرة أخرى، أو اضغطي «عُدّي معي»','soft'); say(['retry'],false); if(wrong>=S.hints){ doCount().then(()=>{ [...box.children].find(o=>!o.classList.contains('dim')&&!o.classList.contains('right'))?.classList.add('glow'); }); } } };
+    box.append(b); });
   a.append(hint);
-  $stage.append(box,counter,fb,a);
-  say((first?['g4','i4']:[]).concat(['w_price',amt(price),'w_paid',amt(paid),'q_change']));
+  wrap.append(h('<div class="prompt">كم ترجع لكِ البائعة؟</div>'),box,counter,fb,a); $stage.append(wrap);
+  say(['w_price',amt(price),'w_paid',amt(paid),'q_change']);
 }
 
-/* ---------- Teacher page: recording script ---------- */
+/* =========================================================
+   10) LEVEL 5 — SHOPPING TRIP
+   ========================================================= */
+const PRICE_OF={juice:3,water:2,shawarma:8,notebook:7,pen:4,charger:15,ball:12,biscuit:5};
+function listOv(items){ const l=h('<div class="ov listov"><h4>القائمة</h4></div>'); items.forEach(it=>l.append(h(`<div class="li" data-k="${it.k}">${icon(it.k)}<span class="chk"></span></div>`))); return l; }
+async function demoTrip(body,narrate,id){
+  const shelfItems=pickItems(4), list=shelfItems.slice(0,2), sc=buildScene(); body.append(sc.root);
+  sc.setShelf(shelfItems); const lo=listOv(list); sc.root.append(lo);
+  const total=list.reduce((a,it)=>a+PRICE_OF[it.k],0); const w=wallet(breakDown(total,[10,5,2,1]),{label:'المحفظة'}); body.append(w);
+  await narrate(['d_intro'],'هذه نورة في المتجر'); if(!alive(id)) return;
+  await narrate(['d_trip_1'],'مع نورة قائمة تسوق'); if(!alive(id)) return;
+  await narrate(['d_trip_2'],'تأخذ من الرف ما في القائمة فقط'); if(!alive(id)) return;
+  let sum=0; for(const it of list){ if(!alive(id)) return; sc.speak(it.plain); await sc.putOnCounter(it,sc.shelfBtns[it.k]); lo.querySelector(`.li[data-k="${it.k}"]`).classList.add('done'); sum+=PRICE_OF[it.k]; sc.setTag(sum,'المجموع'); await narrate(['item_'+it.k,amt(PRICE_OF[it.k])],it.plain+' '+PRICE_OF[it.k]); }
+  sc.speak(''); sc.pulseTag(); await narrate(['list_done','w_total',amt(total)],'اكتملت القائمة. المجموع '+total); if(!alive(id)) return;
+  sc.girlArm(true); await narrate(['d_trip_3'],'ثم تدفع عند البائعة'); if(!alive(id)) return;
+  for(const v of breakDown(total,[10,5,2,1])){ if(!alive(id)) return; const btn=w.querySelector(`button[data-v="${v}"]`); await fly(money(v,'sm'),btn.getBoundingClientRect(),sc.tray.getBoundingClientRect()); sc.addTray(v); await narrate([amt(sc.trayTotal())],'في الطاولة: '+sc.trayTotal()); }
+  sc.happy(true); sc.speak('شكراً لكِ!'); await narrate(['thanks'],'شكراً لكِ!');
+}
+function roundTrip(first){
+  const L=state.level, shelfItems=pickItems(4), list=shelfItems.slice(0,2), total=list.reduce((a,it)=>a+PRICE_OF[it.k],0); let wrong=0, sum=0, phase='pick', onCounter=[];
+  $stage.innerHTML=header(L);
+  const sc=buildScene(); const lo=listOv(list); sc.root.append(lo); sc.girlArm(false);
+  const wrap=walletWrap(sc); const fb=h('<div class="feedback"></div>'); const counter=h('<div class="count"></div>');
+  const prompt=h('<div class="prompt">خذي ما في القائمة من الرف</div>');
+  // wallet: enough money, slightly more than total
+  const extra=rand([2,5,10]); const vals=shuffle(breakDown(total,[10,5,2,1]).concat([extra]));
+  let w=null, pay=null;
+  const addMoney=(v)=>{ if(phase!=='pay') return; sc.addTray(v,(vv,m)=>{sc.removeTray(m);say(sc.trayTotal()?[amt(sc.trayTotal())]:[],false);update();}); update(); say([amt(sc.trayTotal())],false); };
+  const update=()=>{ pay.classList.toggle('glow',sc.trayTotal()>=total); };
+  const pick=async(it,btn)=>{ if(phase!=='pick'||btn.classList.contains('gone')) return;
+    if(list.includes(it)&&!onCounter.includes(it.k)){ onCounter.push(it.k); await sc.putOnCounter(it,btn); lo.querySelector(`.li[data-k="${it.k}"]`).classList.add('done'); sum+=PRICE_OF[it.k]; sc.setTag(sum,'المجموع'); say(['item_'+it.k,amt(PRICE_OF[it.k])],false); lo.querySelectorAll('.li').forEach(x=>x.classList.remove('glow'));
+      if(onCounter.length===list.length){ phase='pay'; sc.girlArm(true); prompt.textContent='ادفعي المجموع'; sc.pulseTag(); await say(['list_done','w_total',amt(total)],false); w.hidden=false; pay.hidden=false; } }
+    else { wrong++; btn.classList.add('pop'); setTimeout(()=>btn.classList.remove('pop'),400); feedback(fb,'هذا ليس في القائمة','soft'); say(['not_in_list'],false); if(wrong>=S.hints){ const next=list.find(x=>!onCounter.includes(x.k)); sc.shelfBtns[next.k].classList.add('glow'); } } };
+  sc.setShelf(shelfItems,pick);
+  w=wallet(vals,{drag:true,onAdd:addMoney,zone:()=>sc.tray,label:'المحفظة'}); w.hidden=true;
+  pay=h('<button class="big primary">ادفعي</button>'); pay.hidden=true;
+  pay.onclick=async()=>{ const t=sc.trayTotal();
+    if(t<total){ wrong++; feedback(fb,'المبلغ أقل من المجموع. أضيفي نقوداً','soft'); say(['less'],false); if(wrong>=S.hints){ const need=total-t; const v=[...w.querySelectorAll('button')].map(b=>+b.dataset.v).filter(x=>x<=need).sort((a,b)=>b-a)[0]||1; w.querySelector(`button[data-v="${v}"] .money`)?.classList.add('glow'); } return; }
+    pay.disabled=true; w.querySelectorAll('button').forEach(b=>b.disabled=true); sc.happy(true); sc.speak('شكراً لكِ!'); onCounter.forEach(k=>state.bought.push(k));
+    if(t===total){ feedback(fb,'أحسنتِ! دفعتِ المجموع بالضبط','good'); await say([praise(),'thanks'],false); }
+    else { feedback(fb,'دفعتِ أكثر، والباقي '+(t-total)+' ريال','good'); await say([praise(),'pay_more_change'],false); await countUp(sc,counter,total,t,async(k)=>{await say(k,false)}); }
+    nextRound(wrong===0); };
+  const a=h('<div class="actions"></div>'); a.append(pay);
+  wrap.append(prompt,w,counter,fb,a); $stage.append(wrap);
+  say((first?['d_trip_2']:[]).concat(list.map(it=>'item_'+it.k)));
+}
+
+/* =========================================================
+   11) TEACHER PAGE — settings + recording script
+   ========================================================= */
 function showTeacher(){
-  $stage.innerHTML='';$stage.className='stage teacher';
+  runId++; $stage.className='stage teacher'; $stage.innerHTML='';
+  $stage.append(h('<h2>صفحة المعلمة</h2>'));
+  $stage.append(h('<h3>الإعدادات (تُحفظ على هذا الجهاز)</h3>'));
+  const grid=h('<div class="settings"></div>');
+  const seg=(key,label,opts)=>{ const s=h(`<div class="setting"><label>${label}</label><div class="seg"></div></div>`); const d=s.querySelector('.seg'); opts.forEach(([v,t])=>{ const b=h(`<button class="${S[key]===v?'on':''}">${t}</button>`); b.onclick=()=>{S[key]=v;saveSettings();d.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');}; d.append(b); }); return s; };
+  grid.append(seg('money','النقود المستخدمة',[['small','١، ٢، ٥، ١٠ فقط'],['all','مع ٥٠ و١٠٠']]));
+  grid.append(seg('input','طريقة الدفع',[['both','سحب أو ضغط'],['tap','ضغط فقط']]));
+  grid.append(seg('hints','التلميح بعد',[[1,'خطأ واحد'],[2,'خطأين'],[3,'ثلاثة أخطاء']]));
+  grid.append(seg('rounds','عدد الجولات',[[3,'٣'],[5,'٥'],[8,'٨']]));
+  $stage.append(grid);
+  const reset=h('<button class="big ghost" style="align-self:flex-start;font-size:18px;min-height:56px">مسح نجوم الطالبة على هذا الجهاز</button>');
+  reset.onclick=()=>{[1,2,3,4,5].forEach(i=>{try{localStorage.removeItem('stars'+i)}catch(e){}});reset.textContent='تم المسح';}; $stage.append(reset);
+  $stage.append(h('<h3>الاستخدام في الصف</h3>'));
+  $stage.append(h('<p>كل لعبة تبدأ بمشاهدة نورة وهي تؤدي المهمة، ثم تؤديها الطالبة بنفسها. يُفضّل وضع نقود حقيقية أمام الطالبة أثناء اللعب لتطابق ما على الشاشة بما في يدها. زر السماعة في الأعلى يعيد آخر جملة.</p>'));
+  $stage.append(h('<h3>نص التسجيل الصوتي</h3>'));
   const voiceName=arVoice?arVoice.name+' ('+arVoice.lang+')':'لا يوجد صوت عربي في هذا الجهاز';
-  $stage.append(h('<h2>نص التسجيل الصوتي</h2>'));
-  $stage.append(h('<p>يعمل التطبيق الآن بصوت الجهاز: <b>'+voiceName+'</b>. لتحسين النطق، تُسجَّل كل جملة في ملف صوتي منفصل بالاسم الموجود في العمود الأول (مثل <code dir="ltr">amt_13.mp3</code>)، ثم توضع الملفات في مجلد <code dir="ltr">audio</code> بجانب الصفحة مع ملف <code dir="ltr">manifest.json</code>. أي جملة لم تُسجَّل يقرؤها صوت الجهاز تلقائياً.</p>'));
-  $stage.append(h('<p>العدد الكلي: <b>'+Object.keys(PHRASES).length+'</b> جملة قصيرة. يُفضّل التسجيل في مكان هادئ، بصوت واضح وهادئ، مع ترك ثانية صمت قبل الكلام وبعده.</p>'));
+  $stage.append(h('<p>الجمل المسجّلة تُشغَّل من مجلد <code dir="ltr">audio</code>. أي جملة غير مسجّلة يقرؤها صوت الجهاز: <b>'+voiceName+'</b>. العدد الكلي: <b>'+Object.keys(PHRASES).length+'</b> جملة.</p>'));
   const wrap=h('<div class="scriptwrap"><table><thead><tr><th>اسم الملف</th><th>النص</th><th>الحالة</th><th></th></tr></thead><tbody></tbody></table></div>');
   const tb=wrap.querySelector('tbody');
-  Object.entries(PHRASES).forEach(([k,t])=>{
-    const tr=h('<table><tr><td><code>'+k+'.mp3</code></td><td>'+t+'</td><td>'+(recorded.has(k)?'<span class="pill">مسجّل</span>':'<span class="pill off">صوت الجهاز</span>')+'</td><td><button>استماع</button></td></tr></table>').querySelector('tr');
-    tr.querySelector('button').onclick=()=>say([k],false);
-    tb.append(tr);
-  });
+  Object.entries(PHRASES).forEach(([k,t])=>{ const tr=h('<table><tr><td><code>'+k+'.mp3</code></td><td>'+t+'</td><td>'+(recorded.has(k)?'<span class="pill">مسجّل</span>':'<span class="pill off">صوت الجهاز</span>')+'</td><td><button>استماع</button></td></tr></table>').querySelector('tr'); tr.querySelector('button').onclick=()=>say([k],false); tb.append(tr); });
   $stage.append(wrap);
-  const reset=h('<button class="big ghost" style="align-self:flex-start">مسح نجوم الطالبة على هذا الجهاز</button>');
-  reset.onclick=()=>{[1,2,3,4].forEach(i=>{try{localStorage.removeItem('stars'+i)}catch(e){}});reset.textContent='تم المسح';};
-  $stage.append(reset);
 }
 
 /* ---------- wiring ---------- */
 document.getElementById('replay').onclick=()=>say(lastSay.length?lastSay:['welcome'],false);
-document.getElementById('home').onclick=()=>{ if(location.hash==='#teacher') location.hash=''; $stage.className='stage'; showMenu(); };
-function route(){ if(location.hash==='#teacher') showTeacher(); else { $stage.className='stage'; showStart(); } }
+document.getElementById('home').onclick=()=>{ if(location.hash==='#teacher') location.hash=''; showMenu(); };
+function route(){ if(location.hash==='#teacher') showTeacher(); else showStart(); }
 window.addEventListener('hashchange',route);
 route();
 </script>
